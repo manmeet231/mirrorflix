@@ -1,0 +1,97 @@
+.movie-row {
+  padding: 20px 0;
+  position: relative;
+}
+
+.category-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  padding-left: 4%;
+}
+
+.movie-row-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-row-posters {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0 10px;
+  gap: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.movie-row-posters::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 100px;
+  background: rgba(20, 20, 20, 0.7);
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease, background 0.3s ease;
+  border-radius: 4px;
+}
+
+.scroll-btn:hover {
+  background: rgba(20, 20, 20, 0.9);
+}
+
+.movie-row-container:hover .scroll-btn {
+  opacity: 1;
+}
+
+.scroll-left {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.scroll-right {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.scroll-btn.visible {
+  opacity: 1 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .movie-row-posters {
+    padding: 0 5px;
+  }
+
+  .scroll-btn {
+    width: 40px;
+    height: 80px;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-title {
+    font-size: 1.2rem;
+  }
+
+  .scroll-btn {
+    width: 30px;
+    height: 60px;
+    font-size: 1.2rem;
+  }
+}

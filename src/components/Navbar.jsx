@@ -3,9 +3,14 @@ import './Navbar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [activeNav, setActiveNav] = useState('Home');
 
   const handleScroll = () => {
     setScrolled(window.scrollY > 50);
+  };
+
+  const handleNavClick = (navItem) => {
+    setActiveNav(navItem);
   };
 
   React.useEffect(() => {
@@ -13,17 +18,27 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navItems = [
+    { id: 'Home', label: 'Home' },
+    { id: 'TV Shows', label: 'TV Shows' },
+    { id: 'Movies', label: 'Movies' },
+    { id: 'My List', label: 'My List' },
+  ];
+
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-left">
         <div className="navbar-logo">MIRRORFLIX</div>
         <div className="navbar-center">
-          <a href="#" className="active">Home</a>
-          <a href="#">TV Shows</a>
-          <a href="#">Movies</a>
-          <a href="#">New & Popular</a>
-          <a href="#">My List</a>
-          <a href="#">Browse by Languages</a>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-pill ${activeNav === item.id ? 'active' : ''}`}
+              onClick={() => handleNavClick(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
       <div className="navbar-right">
@@ -72,12 +87,6 @@ const Navbar = () => {
             d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
           />
         </svg>
-        <div className="user-avatar">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png"
-            alt="User Profile"
-          />
-        </div>
       </div>
     </nav>
   );

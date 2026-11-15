@@ -22,14 +22,11 @@ const HeroSlide = ({ show, isActive }) => {
         </p>
         <div className="hero-buttons">
           <button className="play-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              className="w-6 h-6"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
+            <img
+              src="/src/assets/playbutton.svg"
+              alt="Play"
+              className="play-icon"
+            />
             Play
           </button>
           <button className="more-info-btn">

@@ -12,31 +12,31 @@ const App = () => {
       id: 1,
       title: "Stranger Things",
       description: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
-      backgroundImage: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      backgroundImage: "src/assets/strangerthings.jpg"
     },
     {
       id: 2,
       title: "The Crown",
       description: "Follow the political rivalries and romance of Queen Elizabeth II's reign and the events that shaped the second half of the 20th century.",
-      backgroundImage: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      backgroundImage: "src/assets/thecrown.jpg"
     },
     {
       id: 3,
       title: "Bridgerton",
       description: "In Regency London during the social season, ambitious young women and their mothers seek to capture the attention of eligible bachelors.",
-      backgroundImage: "https://images.unsplash.com/photo-1618897996318-5a901fa6ca71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      backgroundImage: "src/assets/bridgerton.jpg"
     },
     {
       id: 4,
       title: "The Witcher",
       description: "Geralt of Rivia, a solitary monster hunter, struggles to find his place in a world where people often prove more wicked than beasts.",
-      backgroundImage: "https://images.unsplash.com/photo-1635805737707-575885ab0820?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      backgroundImage: "src/assets/thewitcher.jpg"
     },
     {
       id: 5,
       title: "Money Heist",
       description: "A group of robbers carry out a sophisticated heist on the Royal Mint of Spain, under the leadership of the mysterious Professor.",
-      backgroundImage: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      backgroundImage: "src/assets/moneyheist.jpg"
     }
   ];
 

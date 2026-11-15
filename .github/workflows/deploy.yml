@@ -1,0 +1,56 @@
+﻿name: Deploy Alterbucket
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -p "$VPS_PORT" "$VPS_HOST" 2>/dev/null > ~/.ssh/known_hosts
+
+          ssh-keygen -lf ~/.ssh/known_hosts | grep -Fq 'SHA256:bj0F2pLGJI+ZBXLsC3V6c4fzSshBZXPe1/ELu52qzjg' || {
+            echo "SSH host fingerprint verification failed"
+            exit 1
+          }
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -p "$VPS_PORT" \
+            "$VPS_USER@$VPS_HOST" <<'EOF'
+              set -e
+
+              cd /var/www/alterbucket/frontend
+
+              echo "Pulling latest code..."
+              git pull --ff-only origin main
+
+              echo "Installing dependencies..."
+              npm ci
+
+              echo "Building production frontend..."
+              npm run build
+
+              echo "Deployment completed successfully!"
+          EOF

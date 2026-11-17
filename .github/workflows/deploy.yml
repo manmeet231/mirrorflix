@@ -23,9 +23,10 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-          ssh-keyscan -p "$VPS_PORT" "$VPS_HOST" 2>/dev/null > ~/.ssh/known_hosts
+          ssh-keyscan -T 20 -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts
+          test -s ~/.ssh/known_hosts || { echo "No SSH host key received from VPS"; exit 1; }
 
-          ssh-keygen -lf ~/.ssh/known_hosts | grep -Fq 'SHA256:bj0F2pLGJI+ZBXLsC3V6c4fzSshBZXPe1/ELu52qzjg' || {
+          ssh-keygen -lf ~/.ssh/known_hosts | grep -Fq 'SHA256:tFtAaMnpX+jaagUU/h6ZukCSPyTSTkS2UP3knbXgkqw' || {
             echo "SSH host fingerprint verification failed"
             exit 1
           }

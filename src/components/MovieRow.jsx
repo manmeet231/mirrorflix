@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import MovieCard from './MovieCard';
 import './MovieRow.css';
 
-const MovieRow = ({ title, movies }) => {
+const MovieRow = ({ title, movies, onSelectMovie }) => {
   const rowRef = useRef(null);
   const [isLeftVisible, setIsLeftVisible] = useState(false);
   const [isRightVisible, setIsRightVisible] = useState(false);
@@ -58,7 +58,7 @@ const MovieRow = ({ title, movies }) => {
         
         <div className="movie-row-posters" ref={rowRef}>
           {movies.map((movie, index) => (
-            <MovieCard key={index} movie={movie} />
+            <MovieCard key={movie.id || index} movie={movie} onClick={() => onSelectMovie?.(movie)} />
           ))}
         </div>
         

@@ -1,525 +1,98 @@
-import React, { useState } from 'react';
-import styled from '@emotion/styled';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import './MovieModal.css';
 
-const MovieModal = ({ movie, isOpen, onClose }) => {
-  const [isClosing, setIsClosing] = useState(false);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-    }, 300);
-  };
-
-  if (!isOpen) return null;
-
+// Existing flat episode data is supported; add seasonList for multiple seasons.
+export default function MovieModal({ movie, isOpen, onClose, onPlay }) {
+  const dialog = useRef(null);
+  const headingId = useId();
+  const [seasonIndex, setSeasonIndex] = useState(0);
+  const [playing, setPlaying] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!isOpen) return;
+    setSeasonIndex(0); setPlaying(null); setError(''); setSaved(false); setLiked(false);
+    const previous = document.activeElement;
+    dialog.current?.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.current?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [isOpen, movie?.id]);
+  if (!isOpen || !movie) return null;
+  const seasons = movie.seasonList?.length ? movie.seasonList : [{ title: 'Season 1', episodes: movie.episodes || [] }];
+  const current = seasons[seasonIndex] || seasons[0];
+  function play(episode) {
+    setError('');
+    if (!episode) { setError('No episodes are available yet.'); return; }
+    if (onPlay) { onPlay(episode, movie); return; }
+    if (!episode.videoUrl) { setError('Video is not available yet. Add a videoUrl for this episode.'); return; }
+    setPlaying(episode);
+  }
   return (
-    <ModalOverlay isClosing={isClosing}>
-      <ModalContainer isClosing={isClosing}>
-        <CloseButton onClick={handleClose}>
-          <CloseIcon />
-        </CloseButton>
-        
-        <HeroSection>
-          <HeroPoster src={movie.poster} alt={movie.title} />
-          <HeroLogo />
-          <HeroActionButtons>
-            <PlayPillButton>
-              <PlayIcon />
-              <PlayText>Play</PlayText>
-            </PlayPillButton>
-            <AddToListButton>
-              <PlusIcon />
-            </AddToListButton>
-            <LikeButton>
-              <ThumbsUpIcon />
-            </LikeButton>
-          </HeroActionButtons>
-        </HeroSection>
-        
-        <DetailsSection>
-          <LeftColumn>
-            <MetadataRow>
-              <MatchPercentage>{movie.matchPercentage}</MatchPercentage>
-              <YearText>{movie.year}</YearText>
-              <SeasonsText>{movie.seasons}</SeasonsText>
-              <HDBadge>HD</HDBadge>
-            </MetadataRow>
-            
-            <RatingRow>
-              <AgeRatingBadge>{movie.ageRating}</AgeRatingBadge>
-              <GrayText>{movie.rating}</GrayText>
-            </RatingRow>
-            
-            <SynopsisTitle>Synopsis</SynopsisTitle>
-            <SynopsisText>{movie.synopsis}</SynopsisText>
-            
-            <AudioText>Japanese</AudioText>
-          </LeftColumn>
-          
-          <RightColumn>
-            <CastTitle>Cast</CastTitle>
-            <CastText>{movie.cast}</CastText>
-            
-            <GenresTitle>Genres</GenresTitle>
-            <GenresText>{movie.genres}</GenresText>
-            
-            <TagsTitle>This show is:</TagsTitle>
-            <TagsText>{movie.tags.join(', ')}</TagsText>
-          </RightColumn>
-        </DetailsSection>
-        
-        <EpisodeListSection>
-          <EpisodeListHeader>
-            <EpisodeListTitle>Episodes</EpisodeListTitle>
-            <SeasonDropdown>
-              <SeasonDropdownText>Season 3 (12 EP)</SeasonDropdownText>
-              <DropdownArrow />
-            </SeasonDropdown>
-          </EpisodeListHeader>
-          
-          <EpisodeRows>
-            {movie.episodes.map((episode) => (
-              <EpisodeRow key={episode.id}>
-                <EpisodeThumbnail src={episode.thumbnail} alt={episode.title} />
-                <EpisodeInfo>
-                  <EpisodeTitle>{episode.title}</EpisodeTitle>
-                  <EpisodeDescription>{episode.description}</EpisodeDescription>
-                </EpisodeInfo>
-                <EpisodeDuration>{episode.duration}</EpisodeDuration>
-              </EpisodeRow>
-            ))}
-          </EpisodeRows>
-        </EpisodeListSection>
-      </ModalContainer>
-    </ModalOverlay>
+    <dialog ref={dialog} className="show-dialog" aria-labelledby={headingId}
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === dialog.current) onClose(); }}>
+      <article className="show-panel">
+        <button className="show-close show-circle" onClick={onClose} aria-label="Close show details">×</button>
+        <header className="show-hero">
+          <img className="show-backdrop" src={movie.backdrop || movie.poster} alt="" />
+          <div className="show-hero-content">
+            <p className="show-eyebrow">ALTERBUCKET · SERIES</p>
+            <h1 id={headingId}>{movie.title}</h1>
+            <div className="show-actions">
+              <button className="show-play" onClick={() => play(current.episodes[0])}><span aria-hidden="true">▶︎</span> Play</button>
+              <button className="show-circle" aria-label="Add to my list" aria-pressed={saved} onClick={() => setSaved(!saved)}>{saved ? '✓' : '+'}</button>
+              <button className="show-circle" aria-label="Like this show" aria-pressed={liked} onClick={() => setLiked(!liked)}>♡</button>
+            </div>
+          </div>
+        </header>
+        <div className="show-body">
+          {playing && <section className="show-player" aria-label={`Playing ${playing.title}`}>
+            <h2>{playing.title}</h2>
+            <video key={playing.videoUrl} controls autoPlay playsInline poster={playing.thumbnail} onError={() => setError('Unable to load this video. Please try again later.')}>
+              <source src={playing.videoUrl} />
+              {playing.subtitles?.map((track) => <track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label} />)}
+            </video>
+            <button className="show-text-button" onClick={() => setPlaying(null)}>Close player</button>
+          </section>}
+          {error && <p role="status" className="show-notice">{error}</p>}
+          <div className="show-details">
+            <section>
+              <div className="show-metadata"><strong>{movie.matchPercentage && `${movie.matchPercentage} match`}</strong><span>{movie.year}</span><span>{movie.seasons || `${seasons.length} Seasons`}</span><span className="show-badge">HD</span></div>
+              <p className="show-rating"><span className="show-badge">{movie.ageRating || 'Not rated'}</span> {movie.rating}</p>
+              <h2 className="show-synopsis-title">Synopsis</h2>
+              <p className="show-synopsis">{movie.synopsis}</p>
+              <span className="show-language">{movie.language || 'Japanese'}</span>
+            </section>
+            <aside className="show-facts">
+              <p><span>Cast: </span>{movie.cast || 'Not provided'}</p>
+              <p><span>Genres: </span>{movie.genres || 'Not provided'}</p>
+              <p><span>This show is: </span>{(movie.tags || []).join(', ')}</p>
+            </aside>
+          </div>
+          <section className="show-episodes" aria-label="Episodes">
+            <div className="show-episode-header"><h2>Episodes</h2><label><span className="show-visually-hidden">Select season</span><select value={seasonIndex} onChange={(event) => { setSeasonIndex(Number(event.target.value)); setError(''); }}>
+              {seasons.map((season, index) => <option key={index} value={index}>{season.title} ({season.episodes.length} EP)</option>)}
+            </select></label></div>
+            <ol className="show-episode-list">
+              {current.episodes.map((episode, index) => <li key={episode.id || index}>
+                <button className={`show-episode ${playing?.id === episode.id ? 'is-playing' : ''}`} onClick={() => play(episode)} aria-label={`Play episode ${index + 1}: ${episode.title}`}>
+                  <span className="show-episode-number">{index + 1}</span>
+                  <span className="show-thumbnail"><img src={episode.thumbnail || movie.poster} alt="" loading="lazy" /><span aria-hidden="true">▶︎</span></span>
+                  <span className="show-episode-copy"><span className="show-episode-title">{episode.title}</span><span className="show-episode-description">{episode.description}</span></span>
+                  <span className="show-duration">{episode.duration}</span>
+                </button>
+              </li>)}
+            </ol>
+            {!current.episodes.length && <p>Episodes are coming soon.</p>}
+          </section>
+        </div>
+      </article>
+    </dialog>
   );
-};
-
-// Styled components
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: ${props => props.isClosing ? 'fadeOut 0.3s ease' : 'fadeIn 0.3s ease'};
-`;
-
-const ModalContainer = styled.div`
-  width: 80%;
-  max-width: 900px;
-  height: 85vh;
-  background-color: #000000;
-  border-radius: 8px;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-  animation: ${props => props.isClosing ? 'slideOut 0.3s ease' : 'slideIn 0.3s ease'};
-  
-  @media (max-width: 768px) {
-    width: 95%;
-    height: 95vh;
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(22, 22, 22, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(22, 22, 22, 0.9);
-  }
-`;
-
-const HeroSection = styled.div`
-  position: relative;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
-`;
-
-const HeroPoster = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
-`;
-
-const HeroLogo = styled.div`
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 120px;
-  height: 40px;
-  background: linear-gradient(to right, #00FFFF, #A020F0);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 18px;
-`;
-
-const HeroActionButtons = styled.div`
-  position: absolute;
-  bottom: 30px;
-  left: 30px;
-  display: flex;
-  gap: 16px;
-`;
-
-const PlayPillButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #ffffff;
-  color: black;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
-
-const PlayText = styled.span``;
-
-const AddToListButton = styled.button`
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: rgba(22, 22, 22, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(22, 22, 22, 0.9);
-  }
-`;
-
-const LikeButton = styled.button`
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: rgba(22, 22, 22, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(22, 22, 22, 0.9);
-  }
-`;
-
-const DetailsSection = styled.div`
-  padding: 30px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 20px;
-  }
-`;
-
-const LeftColumn = styled.div``;
-
-const MetadataRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-`;
-
-const MatchPercentage = styled.span`
-  color: #46d369;
-  font-size: 14px;
-  font-weight: 500;
-`;
-
-const YearText = styled.span`
-  color: #b3b3b3;
-  font-size: 14px;
-`;
-
-const SeasonsText = styled.span`
-  color: #b3b3b3;
-  font-size: 14px;
-`;
-
-const HDBadge = styled.span`
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-`;
-
-const RatingRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-`;
-
-const AgeRatingBadge = styled.span`
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-`;
-
-const GrayText = styled.span`
-  color: #b3b3b3;
-  font-size: 14px;
-`;
-
-const SynopsisTitle = styled.h3`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-`;
-
-const SynopsisText = styled.p`
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-`;
-
-const AudioText = styled.p`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: #E50914;
-  }
-`;
-
-const RightColumn = styled.div``;
-
-const CastTitle = styled.h3`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-`;
-
-const CastText = styled.p`
-  color: #b3b3b3;
-  font-size: 14px;
-  margin-bottom: 16px;
-`;
-
-const GenresTitle = styled.h3`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-`;
-
-const GenresText = styled.p`
-  color: #b3b3b3;
-  font-size: 14px;
-  margin-bottom: 16px;
-`;
-
-const TagsTitle = styled.h3`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-`;
-
-const TagsText = styled.p`
-  color: #b3b3b3;
-  font-size: 14px;
-`;
-
-const EpisodeListSection = styled.div`
-  padding: 0 30px 30px;
-  border-top: 1px solid #333;
-`;
-
-const EpisodeListHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
-const EpisodeListTitle = styled.h2`
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
-`;
-
-const SeasonDropdown = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(22, 22, 22, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 16px;
-  border-radius: 4px;
-  color: #b3b3b3;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(22, 22, 22, 0.9);
-  }
-`;
-
-const SeasonDropdownText = styled.span``;
-
-const EpisodeRows = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const EpisodeRow = styled.div`
-  display: flex;
-  gap: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #333;
-`;
-
-const EpisodeThumbnail = styled.img`
-  width: 120px;
-  height: 68px;
-  object-fit: cover;
-  border-radius: 4px;
-`;
-
-const EpisodeInfo = styled.div`
-  flex: 1;
-`;
-
-const EpisodeTitle = styled.h3`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 4px;
-`;
-
-const EpisodeDescription = styled.p`
-  color: #b3b3b3;
-  font-size: 14px;
-  line-height: 1.4;
-`;
-
-const EpisodeDuration = styled.span`
-  color: #b3b3b3;
-  font-size: 14px;
-  align-self: center;
-`;
-
-// Icon components
-const CloseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="white"
-  >
-    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-  </svg>
-);
-
-const PlayIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="black"
-  >
-    <path d="M8 5v14l11-7z" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="white"
-  >
-    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-  </svg>
-);
-
-const ThumbsUpIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="white"
-  >
-    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2l-.01-.01L23 10z" />
-  </svg>
-);
-
-const DropdownArrow = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="white"
-  >
-    <path d="M7 10l5 5 5-5z" />
-  </svg>
-);
-
-export default MovieModal;
+}

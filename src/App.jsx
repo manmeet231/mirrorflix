@@ -4,11 +4,10 @@ import HeroSection from './components/HeroSection';
 import ContentSection from './components/ContentSection';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
-import { animeShow } from './components/animeData';
 import './App.css';
 
 const App = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
   // Featured shows for carousel
   const featuredShows = [
     {
@@ -50,14 +49,14 @@ const App = () => {
       <Navbar />
       <main>
         <HeroSection featuredShows={featuredShows} />
-        <ContentSection />
+        <ContentSection onSelectMovie={setSelectedMovie} />
       </main>
       
       {/* Movie Modal */}
       <MovieModal 
-        movie={animeShow} 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        movie={selectedMovie} 
+        isOpen={Boolean(selectedMovie)} 
+        onClose={() => setSelectedMovie(null)} 
       />
       
       <Footer />

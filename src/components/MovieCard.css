@@ -47,3 +47,21 @@
     height: 56px;
   }
 }
+
+.movie-footer {
+  position: relative;
+  top: 100%; /* Positions it directly below the card */
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  /* Add your specific styling below */
+  background: rgba(255, 255, 255, 0.8);
+  color: rgb(255, 255, 255);
+}
+
+.movie-card:hover .movie-footer {
+  opacity: 1;
+}

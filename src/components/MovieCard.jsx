@@ -10,6 +10,8 @@ const MovieCard = ({ movie, onClick }) => {
         className="movie-poster"
       />
     </button>
+      <div className='movie-footer'></div>
+    </div>
   );
 };
 

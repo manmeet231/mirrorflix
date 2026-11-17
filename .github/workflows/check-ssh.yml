@@ -2,7 +2,7 @@ name: Check SSH connectivity
 
 on:
   push:
-    branches: [diagnose-ssh]
+    branches: [diagnose--ssh]
 
 permissions:
   contents: read

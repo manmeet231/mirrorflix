@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
-import MovieRow from './components/MovieRow';
+import ContentSection from './components/ContentSection';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
 import { animeShow } from './components/animeData';
@@ -43,21 +43,14 @@ const App = () => {
     }
   ];
 
-  // Sample movie data
-  const movies = {
-    // trendingNow removed as requested
-  };
+  
 
   return (
     <div className="app">
       <Navbar />
       <main>
         <HeroSection featuredShows={featuredShows} />
-        
-        <div className="section anime-section">
-          <h2 className="section-title">Anime Series</h2>
-          <MovieRow movies={[animeShow]} />
-        </div>
+        <ContentSection />
       </main>
       
       {/* Movie Modal */}

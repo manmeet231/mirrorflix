@@ -26,27 +26,7 @@ main {
   background: #555;
 }
 
-/* Section styles */
-.section {
-  padding: 20px 4%;
-  margin-bottom: 0px;
-  position: relative;
-}
 
-/* Anime Section styles */
-.anime-section {
-  padding: 20px 5%; /* Reduced padding to make it smaller and shift left */
-  margin-top: 20px;
-  z-index: 0;
-}
-
-.section-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  padding-left: 8px;
-  border-left: 4px solid #E50914;
-}
 
 /* Black card styles */
 .black-card {

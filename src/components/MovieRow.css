@@ -12,17 +12,20 @@
 
 .movie-row-container {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .movie-row-posters {
   display: flex;
   overflow-x: auto;
+  overflow-y: visible;
   scroll-behavior: smooth;
   padding: 0 10px;
   gap: 10px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: relative;
+  z-index: 1;
 }
 
 .movie-row-posters::-webkit-scrollbar {

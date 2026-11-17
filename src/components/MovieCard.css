@@ -1,67 +1,257 @@
+
 .movie-card {
-  flex: 0 0 auto;
+  flex: 0 0 200px;
   width: 200px;
+  height: 112px;
   margin-left: 30px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
   position: relative;
   z-index: 1;
 }
 
-.movie-card:hover {
-  transform: scale(1.1);
+/* Main expandable card */
+.movie-card-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  background: #181818;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  transform-origin: top left;
+
+  transition:
+    width 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Expand on hover or keyboard focus */
+.movie-card:hover,
+.movie-card:focus-within {
   z-index: 1000;
-  position: relative;
+}
+
+.movie-card:hover .movie-card-expanded,
+.movie-card:focus-within .movie-card-expanded {
+  width: min(300px, calc(100vw - 40px));
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+}
+
+/* Image section */
+.movie-card-visual {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #111;
+  cursor: pointer;
+  line-height: 0;
 }
 
 .movie-poster {
+  display: block;
   width: 100%;
-  height: 112px;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.movie-card:hover .movie-poster {
-  border: 2px solid #e50914;
-  z-index: 1000;
+/* Footer */
+.movie-footer {
+  background: #181818;
+  color: white;
+  padding: 0 16px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+
+  transition:
+    opacity 0.25s ease,
+    max-height 0.3s ease,
+    padding 0.3s ease;
+}
+
+.movie-card:hover .movie-footer,
+.movie-card:focus-within .movie-footer {
+  max-height: 180px;
+  opacity: 1;
+  padding: 18px 16px 20px;
+}
+
+/* Action buttons row */
+.movie-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+/* Common button styling */
+.action-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #777;
+  background: transparent;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 25px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.action-button:hover {
+  background: #444;
+  border-color: white;
+}
+
+/* Play button */
+.play-button {
+  background: white;
+  color: black;
+  border: 1px solid white;
+  font-size: 19px;
+}
+
+.play-button:hover {
+  background: #ddd;
+  border-color: #ddd;
+}
+
+/* Active like/add state */
+.action-button.active {
+  border-color: white;
+  background: #333;
+  color: #46d369;
+}
+
+.more-button {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-button svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  transition: transform 0.2s ease;
+}
+
+.more-button:hover svg {
+  transform: translateY(2px);
+}
+
+/* Metadata section */
+.movie-metadata {
+  width: 100%;
+}
+
+/* Match, rating, seasons, quality */
+.movie-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.match-percentage {
+  color: #46d369;
+  font-weight: 700;
+}
+
+.age-rating {
+  border: 1px solid #aaa;
+  padding: 2px 6px;
+  font-size: 13px;
+  color: white;
+}
+
+.season-info {
+  color: white;
+  font-size: 14px;
+}
+
+.quality-badge {
+  border: 1px solid #888;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  color: white;
+}
+
+/* Genres row */
+.movie-genres {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #ddd;
+  font-size: 14px;
+}
+
+.genre-item {
+  flex: 0 0 auto;
+}
+
+.genre-item:not(:last-child)::after {
+  content: "•";
+  margin-left: 9px;
+  color: #777;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .movie-card {
+    flex: 0 0 150px;
+    width: 150px;
+    height: 84px;
+  }
+
+  .movie-card-expanded {
     width: 150px;
   }
 
-  .movie-poster {
-    height: 84px;
+  .movie-card:hover .movie-card-expanded,
+  .movie-card:focus-within .movie-card-expanded {
+    width: min(480px, calc(100vw - 30px));
+  }
+
+  .movie-meta-top,
+  .movie-genres {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .movie-card {
+    flex: 0 0 100px;
+    width: 100px;
+    height: 56px;
+  }
+
+  .movie-card-expanded {
     width: 100px;
   }
 
-  .movie-poster {
-    height: 56px;
+  .movie-card:hover .movie-card-expanded,
+  .movie-card:focus-within .movie-card-expanded {
+    width: min(90vw, 380px);
   }
-}
 
-.movie-footer {
-  position: relative;
-  top: 100%; /* Positions it directly below the card */
-  left: 0;
-  width: 100%;
-  z-index: 10;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  /* Add your specific styling below */
-  background: rgba(255, 255, 255, 0.8);
-  color: rgb(255, 255, 255);
-}
+  .movie-actions {
+    gap: 6px;
+  }
 
-.movie-card:hover .movie-footer {
-  opacity: 1;
+  .action-button {
+    width: 34px;
+    height: 34px;
+  }
 }

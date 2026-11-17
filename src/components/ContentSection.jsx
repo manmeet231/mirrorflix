@@ -1,14 +1,22 @@
 import React from 'react';
 import MovieRow from './MovieRow';
-import { animeShow } from './animeData';
 import './ContentSection.css';
 
-const ContentSection = ({ onSelectMovie }) => {
+const ContentSection = ({ 
+  title = "Featured Content", 
+  movies = [], 
+  sectionType = "anime",
+  onSelectMovie 
+}) => {
+  const sectionClass = `${sectionType}-section`;
+  
   return (
     <div className="content-section">
-      <div className="section anime-section">
-        <h2 className="section-title">Anime Series</h2>
-        <MovieRow movies={[animeShow]} onSelectMovie={onSelectMovie} />
+      <div className={`section ${sectionClass}`}>
+        <h2 className="section-title">{title}</h2>
+        {movies.length > 0 && (
+          <MovieRow movies={movies} onSelectMovie={onSelectMovie} />
+        )}
       </div>
     </div>
   );

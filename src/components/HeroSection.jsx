@@ -3,7 +3,12 @@ import HeroSlide from './HeroSlide';
 import CarouselControls from './CarouselControls';
 import './HeroSection.css';
 
-const HeroSection = ({ featuredShows }) => {
+const HeroSection = ({ 
+  featuredShows = [], 
+  autoPlayDelay = 7000,
+  height = '85vh',
+  showControls = true 
+}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const heroRef = useRef(null);
@@ -22,14 +27,14 @@ const HeroSection = ({ featuredShows }) => {
 
   // Auto-progression
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || featuredShows.length <= 1) return;
 
     const interval = setInterval(() => {
       nextSlide();
-    }, 7000);
+    }, autoPlayDelay);
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, autoPlayDelay, featuredShows.length]);
 
   // Handle mouse enter/leave for pause/resume
   const handleMouseEnter = () => {
@@ -49,10 +54,15 @@ const HeroSection = ({ featuredShows }) => {
     setIsPaused(false);
   };
 
+  const heroStyle = {
+    height: height
+  };
+
   return (
     <section 
       className="hero" 
       ref={heroRef}
+      style={heroStyle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
@@ -68,13 +78,15 @@ const HeroSection = ({ featuredShows }) => {
         ))}
       </div>
       
-      <CarouselControls
-        currentSlide={currentSlide}
-        totalSlides={featuredShows.length}
-        onPrev={prevSlide}
-        onNext={nextSlide}
-        onSlideClick={goToSlide}
-      />
+      {showControls && featuredShows.length > 1 && (
+        <CarouselControls
+          currentSlide={currentSlide}
+          totalSlides={featuredShows.length}
+          onPrev={prevSlide}
+          onNext={nextSlide}
+          onSlideClick={goToSlide}
+        />
+      )}
     </section>
   );
 };

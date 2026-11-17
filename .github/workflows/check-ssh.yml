@@ -1,0 +1,42 @@
+name: Check SSH connectivity
+
+on:
+  push:
+    branches: [diagnose-ssh]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Test SSH port without deploying
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${VPS_HOST:?VPS_HOST secret missing}"
+          : "${VPS_PORT:?VPS_PORT secret missing}"
+
+          python3 - <<'PY'
+          import os
+          import socket
+
+          host = os.environ["VPS_HOST"]
+          port = int(os.environ["VPS_PORT"])
+
+          try:
+              with socket.create_connection((host, port), timeout=15) as connection:
+                  connection.settimeout(10)
+                  banner = connection.recv(256)
+                  if not banner.startswith(b"SSH-"):
+                      raise RuntimeError("Connection opened, but no SSH banner received")
+              print("SUCCESS: GitHub runner can reach the SSH service")
+          except Exception as error:
+              print(f"FAILED: {type(error).__name__}: {error}")
+              raise SystemExit(1)
+          PY

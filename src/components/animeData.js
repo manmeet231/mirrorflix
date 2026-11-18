@@ -1,6 +1,12 @@
 import mobPoster from '../assets/mobpsycho100.jpg';
 
 export const animeShow = {
+  // Public demo preview only. Actual episodes require their own videoUrl.
+  demoVideo: {
+    title: "Big Buck Bunny — demo clip",
+    url: "https://www.w3schools.com/html/mov_bbb.mp4",
+    credit: "Blender Foundation · CC BY 3.0",
+  },
   id: 1,
   title: "Mob Psycho 100",
   poster: mobPoster,

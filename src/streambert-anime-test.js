@@ -773,11 +773,121 @@ module.exports = {
   hianimeStream,
   getPlayerServer,
   testMobPsycho100,
+  runAnimeTest,
   // Configuration
   BASE_URL,
   SERVER_NAME,
   USER_AGENT
 };
+
+// Run anime test function
+async function runAnimeTest(title, episode = 1, mode = 'sub') {
+  console.log(`\n🔍 Testing ${title} Episode ${episode} (${mode})...`);
+  
+  try {
+    // Step 1: Search for the show
+    console.log(`\n🔍 Searching for "${title}"...`);
+    const searchResults = await hianimeSearch(title);
+    if (!searchResults.length) {
+      throw new Error(`No results found for "${title}"`);
+    }
+    
+    console.log(`✅ Found ${searchResults.length} results:`);
+    searchResults.forEach((result, index) => {
+      console.log(`  ${index + 1}. ${result.title} (${result.id})`);
+    });
+    
+    // Use the first result
+    const show = searchResults[0];
+    console.log(`\n📺 Selected: ${show.title} (${show.id})`);
+    
+    // Step 2: Get episodes
+    console.log("\n📋 Getting episode list...");
+    const episodes = await hianimeEpisodes(show.id);
+    if (!episodes.length) {
+      throw new Error(`No episodes found for ${show.title}`);
+    }
+    
+    console.log(`✅ Found ${episodes.length} episodes:`);
+    episodes.slice(0, 10).forEach((ep, index) => {
+      console.log(`  ${index + 1}. Episode ${ep.number} (ID: ${ep.epId})`);
+    });
+    
+    // Find the requested episode
+    const episodeData = episodes.find(ep => 
+      parseFloat(ep.number) === episode || ep.number === String(episode)
+    );
+    
+    if (!episodeData) {
+      throw new Error(`Episode ${episode} not found`);
+    }
+    
+    console.log(`\n🎬 Selected Episode ${episodeData.number} (ID: ${episodeData.epId})`);
+    
+    // Step 3: Get stream URL
+    console.log("\n🌐 Getting stream URL...");
+    const stream = await hianimeStream(episodeData.epId, mode);
+    
+    console.log("✅ Stream resolved:");
+    console.log(`  Master URL: ${stream.masterUrl}`);
+    console.log(`  Referer: ${stream.referer}`);
+    console.log(`  Subtitle: ${stream.subtitle || "None"}`);
+    console.log(`  Resolution: ${stream.resolution}`);
+    console.log(`  MAL ID: ${stream.malId || "None"}`);
+    
+    // Step 4: Start player server
+    console.log("\n🚀 Starting local player server...");
+    const server = await getPlayerServer();
+    const port = server.address().port;
+    
+    // Set current video
+    _currentVideoUrl = stream.masterUrl;
+    _currentVideoReferer = stream.referer;
+    _currentVideoSubtitle = stream.subtitle;
+    _currentVideoStartTime = 0;
+    
+    // Step 5: Generate player URL
+    const playerUrl = `http://127.0.0.1:${port}/player?t=${_serverToken}`;
+    
+    console.log("\n🎉 Ready to watch!");
+    console.log(`\n📺 Player URL: ${playerUrl}`);
+    console.log(`\n💡 Instructions:`);
+    console.log(`  1. Open the above URL in your web browser`);
+    console.log(`  2. The video should start automatically`);
+    console.log(`  3. Use the video player controls to play/pause/seek`);
+    console.log(`  4. Subtitles should be available if present`);
+    
+    // Keep server running
+    console.log("\n⏳ Server running... Press Ctrl+C to exit");
+    process.on('SIGINT', () => {
+      console.log('\n👋 Shutting down server...');
+      server.close(() => {
+        console.log('✅ Server stopped');
+        process.exit(0);
+      });
+    });
+    
+    // Open in browser automatically (optional)
+    const openBrowser = () => {
+      const open = process.platform === 'win32' ? 'start' :
+                   process.platform === 'darwin' ? 'open' : 'xdg-open';
+      
+      console.log(`\n🌐 Opening in browser...`);
+      spawn(open, [playerUrl], { 
+        detached: true, 
+        stdio: 'ignore',
+        shell: true // Use shell to handle 'start' command on Windows
+      }).unref();
+    };
+    
+    // Try to open browser after a short delay
+    setTimeout(openBrowser, 2000);
+    
+  } catch (error) {
+    console.error("\n❌ Error:", error.message);
+    process.exit(1);
+  }
+}
 
 // Interactive mode function
 async function interactiveMode() {

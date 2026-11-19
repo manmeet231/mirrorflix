@@ -1,14 +1,21 @@
 import { animeShow } from './components/animeData';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import ContentSection from './components/ContentSection';
+import CategorizedAnimeSection from './components/CategorizedAnimeSection';
+import IntegrationTest from './components/IntegrationTest';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
+import { getCategorizedAnime } from './components/animeDataService';
 import './App.css';
 
 const App = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [animeData, setAnimeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   // Featured shows for carousel
   const featuredShows = [
     {
@@ -43,21 +50,72 @@ const App = () => {
     }
   ];
 
+  // Fetch anime data on component mount
+  useEffect(() => {
+    const fetchAnimeData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch categorized anime data
+        const data = await getCategorizedAnime(
+          { page: 1, perPage: 20 }, 
+          { episodeNumber: 1, mode: 'sub' }
+        );
+        
+        setAnimeData(data);
+      } catch (err) {
+        console.error('Error fetching anime data:', err);
+        setError('Failed to load anime data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnimeData();
+  }, []);
+
   
+
+  // Handle movie selection
+  const handleSelectMovie = (movie) => {
+    setSelectedMovie(movie);
+  };
+
+  // Handle movie modal close
+  const handleCloseModal = () => {
+    setSelectedMovie(null);
+  };
 
   return (
     <div className="app">
       <Navbar />
       <main>
         <HeroSection featuredShows={featuredShows} />
-        <ContentSection title="Anime Series" movies={[animeShow]} onSelectMovie={setSelectedMovie} />
+        
+        {/* Integration Test */}
+        <IntegrationTest />
+        
+        {/* Static anime section (can be removed once dynamic data is working) */}
+        <ContentSection title="Featured Anime" movies={[animeShow]} onSelectMovie={handleSelectMovie} />
+        
+        {/* Dynamic categorized anime section */}
+        {animeData && (
+          <CategorizedAnimeSection 
+            title="Browse Anime" 
+            animeData={animeData}
+            onSelectMovie={handleSelectMovie}
+            loading={loading}
+            error={error}
+          />
+        )}
       </main>
       
       {/* Movie Modal */}
       <MovieModal 
         movie={selectedMovie} 
         isOpen={Boolean(selectedMovie)} 
-        onClose={() => setSelectedMovie(null)} 
+        onClose={handleCloseModal} 
       />
       
       <Footer />

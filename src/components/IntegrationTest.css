@@ -1,0 +1,131 @@
+/* Integration Test Styles */
+.integration-test {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.integration-test h2 {
+  color: #fff;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  border-bottom: 2px solid #e50914;
+  padding-bottom: 0.5rem;
+}
+
+.test-summary {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.test-summary h3 {
+  color: #e50914;
+  margin-bottom: 0.5rem;
+}
+
+.test-summary p {
+  color: #fff;
+  margin: 0.25rem 0;
+}
+
+.categories-test {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.categories-test h3 {
+  color: #e50914;
+  margin-bottom: 0.5rem;
+}
+
+.categories-test ul {
+  list-style: none;
+  padding: 0;
+}
+
+.categories-test li {
+  color: #fff;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #333;
+}
+
+.anime-preview {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.anime-preview h3 {
+  color: #e50914;
+  margin-bottom: 0.5rem;
+}
+
+.anime-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.anime-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.anime-item h4 {
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.anime-item p {
+  color: #aaa;
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #333;
+  border-top: 3px solid #e50914;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .integration-test {
+    padding: 1rem;
+  }
+  
+  .anime-list {
+    grid-template-columns: 1fr;
+  }
+}

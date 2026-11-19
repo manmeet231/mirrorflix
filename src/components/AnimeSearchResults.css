@@ -122,3 +122,41 @@
     transition: none;
   }
 }
+
+.catalog-search-group {
+  max-width: 1420px;
+  margin: 0 auto 34px;
+}
+
+.catalog-search-group-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.catalog-search-group-heading h2 {
+  font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+  font-weight: 800;
+}
+
+.catalog-search-group-heading a,
+.catalog-source-link {
+  color: #f3a8ac;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.catalog-text-poster {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 12px;
+  text-align: center;
+  color: #f6d6dd;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}

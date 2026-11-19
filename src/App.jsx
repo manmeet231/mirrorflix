@@ -123,7 +123,8 @@ const App = () => {
       
       {/* Movie Modal */}
       <MovieModal 
-        movie={selectedMovie} 
+        movie={selectedMovie}
+        showType={selectedMovie?.mediaType || 'series'}
         isOpen={Boolean(selectedMovie)} 
         onClose={handleCloseModal} 
       />

@@ -60,8 +60,8 @@ const Navbar = ({ searchQuery, onSearchChange }) => {
           <input
             ref={searchInput}
             type="search"
-            aria-label="Search anime titles"
-            placeholder="Search anime"
+            aria-label="Search movies, TV series, and anime"
+            placeholder="Search titles"
             maxLength={100}
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}

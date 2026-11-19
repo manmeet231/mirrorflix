@@ -1,3 +1,4 @@
+import { animeShow } from './components/animeData';
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
@@ -49,7 +50,7 @@ const App = () => {
       <Navbar />
       <main>
         <HeroSection featuredShows={featuredShows} />
-        <ContentSection onSelectMovie={setSelectedMovie} />
+        <ContentSection title="Anime Series" movies={[animeShow]} onSelectMovie={setSelectedMovie} />
       </main>
       
       {/* Movie Modal */}

@@ -46,8 +46,10 @@ export default function MovieModal({
     setError('');
     if (!episode) { setError('No episodes are available yet.'); return; }
     if (onPlay) { onPlay(episode, movie); return; }
-    if (!episode.videoUrl && showVideoPlayer) { setError('Video is not available yet. Add a videoUrl for this episode.'); return; }
-    setPlaying(episode);
+    if (!showVideoPlayer) { setError('Playback is disabled for this view.'); return; }
+    if (episode.videoUrl) setPlaying(episode);
+    else if (movie.demoVideo) setPlaying({ ...episode, videoUrl: movie.demoVideo.url, demo: movie.demoVideo, subtitles: [] });
+    else setError('Video is not available yet.');
   }
   
   const closeModal = () => {
@@ -62,7 +64,7 @@ export default function MovieModal({
   };
   return (
     <dialog ref={dialog} className="show-dialog" aria-labelledby={headingId}
-      onCancel={(event) => { event.preventDefault(); closeModal(); }}
+      onCancel={(event) => { event.preventDefault(); if (!playing) closeModal(); }}
       onClick={(event) => { if (event.target === dialog.current) closeModal(); }}>
       <article className="show-panel">
         <button className="show-close show-circle" onClick={closeModal} aria-label="Close show details">×</button>
@@ -91,6 +93,7 @@ export default function MovieModal({
         <div className="show-body">
           {showVideoPlayer && playing && (
             <VideoPlayer 
+              key={`${playing.id ?? playing.title}-${playing.videoUrl}`}
               episode={playing} 
               movie={movie} 
               onClose={() => setPlaying(null)} 

@@ -3,6 +3,58 @@ import MovieRow from './MovieRow';
 import MovieCard from './MovieCard';
 import './ContentSection.css';
 
+// Apply z-index fix dynamically
+const applyZIndexFix = () => {
+  const styleId = 'injected-z-index-fix';
+  let styleElement = document.getElementById(styleId);
+
+  if (!styleElement) {
+    styleElement = document.createElement('style');
+    styleElement.id = styleId;
+    document.head.appendChild(styleElement);
+  }
+
+  styleElement.textContent = `
+    .category-section {
+      position: relative !important;
+      z-index: 1 !important;
+      isolation: auto !important;
+      transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+      overflow: visible !important;
+    }
+
+    .category-section:hover,
+    .category-section:has(.movie-card:hover),
+    .category-section:has(.movie-card.expanded) {
+      z-index: 9999 !important;
+      transform: translateY(-10px) !important;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .category-section .movie-row-posters {
+      overflow: visible !important;
+      z-index: 1 !important;
+    }
+
+    .category-section .scroll-btn {
+      z-index: 10000 !important;
+    }
+  `;
+
+  const sections = document.querySelectorAll('.category-section');
+  const data = {
+    count: sections.length,
+    applied: true,
+    currentStyles: Array.from(sections).map(s => ({
+      title: s.querySelector('h2')?.textContent,
+      zIndex: window.getComputedStyle(s).zIndex,
+      position: window.getComputedStyle(s).position
+    }))
+  };
+
+  console.log('Z-index fix applied:', data);
+};
+
 const CategorizedAnimeSection = ({ 
   title = "Browse Anime", 
   animeData = null, 
@@ -18,6 +70,18 @@ const CategorizedAnimeSection = ({
       setCategories(animeData.categories);
     }
   }, [animeData]);
+
+  // Apply z-index fix when component mounts and when category sections are available
+  useEffect(() => {
+    if (!loading && !error && animeData) {
+      // Apply the fix after a short delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        applyZIndexFix();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, error, animeData]);
 
   // Get all unique genres from anime data
   const getAllGenres = () => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import AnimeSearchResults from './components/AnimeSearchResults';
 import HeroSection from './components/HeroSection';
 import CategorizedAnimeSection from './components/CategorizedAnimeSection';
 import Footer from './components/Footer';
@@ -8,6 +9,9 @@ import { getCategorizedAnime } from './components/animeDataService';
 import './App.css';
 
 const App = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const query = searchQuery.trim();
+  const isSearching = query.length > 0;
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [animeData, setAnimeData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +80,10 @@ const App = () => {
 
   
 
+  useEffect(() => {
+    if (isSearching) window.scrollTo(0, 0);
+  }, [isSearching]);
+
   // Handle movie selection
   const handleSelectMovie = (movie) => {
     setSelectedMovie(movie);
@@ -88,19 +96,28 @@ const App = () => {
 
   return (
     <div className="app">
-      <Navbar />
+      <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <main>
-        <HeroSection featuredShows={featuredShows} />
-        
-        {/* Dynamic categorized anime section */}
-        {animeData && (
-          <CategorizedAnimeSection 
-            title="Browse Anime" 
-            animeData={animeData}
+        {isSearching ? (
+          <AnimeSearchResults
+            key={query}
+            query={query}
+            catalog={animeData?.anime}
             onSelectMovie={handleSelectMovie}
-            loading={loading}
-            error={error}
           />
+        ) : (
+          <>
+            <HeroSection featuredShows={featuredShows} />
+            {animeData && (
+              <CategorizedAnimeSection
+                title="Browse Anime"
+                animeData={animeData}
+                onSelectMovie={handleSelectMovie}
+                loading={loading}
+                error={error}
+              />
+            )}
+          </>
         )}
       </main>
       

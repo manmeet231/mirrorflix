@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ searchQuery, onSearchChange }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('Home');
 
@@ -11,6 +11,7 @@ const Navbar = () => {
 
   const handleNavClick = (navItem) => {
     setActiveNav(navItem);
+    if (navItem === 'Home') onSearchChange('');
   };
 
   React.useEffect(() => {
@@ -42,22 +43,28 @@ const Navbar = () => {
         </div>
       </div>
       <div className="navbar-right">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+        <div className="anime-search-box" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+          <input
+            type="search"
+            aria-label="Search anime titles"
+            placeholder="Search anime"
+            maxLength={100}
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                onSearchChange('');
+              }
+            }}
           />
-        </svg>
-        <div className="search-bar">
-          <input type="text" placeholder="Titles, people, genres" />
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"

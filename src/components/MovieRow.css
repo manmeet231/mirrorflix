@@ -99,3 +99,32 @@
     font-size: 1.2rem;
   }
 }
+
+.movie-row--search {
+  --search-card-width: clamp(156px, 17vw, 232px);
+  padding: 0;
+}
+
+.movie-row--search .movie-row-posters {
+  gap: clamp(10px, 1.35vw, 19px);
+  padding: calc(var(--search-card-width) * 0.06 + 3px) calc(var(--search-card-width) * 0.1 + 3px) 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-padding: calc(var(--search-card-width) * 0.1 + 3px);
+}
+
+.movie-row--search .scroll-btn[hidden] {
+  display: none;
+}
+
+.movie-row--search .scroll-btn {
+  top: 40%;
+  width: 36px;
+  height: 60px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-row--search .movie-row-posters {
+    scroll-behavior: auto;
+  }
+}

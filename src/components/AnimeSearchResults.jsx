@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchAniListAnime } from './anilistService';
+import MovieRow from './MovieRow';
 import { mapAnimeToCardFormat } from './animeDataService';
 import { searchMovies, searchTvShows } from './mediaSearchService';
 import './AnimeSearchResults.css';
@@ -19,40 +20,6 @@ async function searchAnime(query, signal) {
     signal,
   });
   return data.Page.media.map((anime) => mapAnimeToCardFormat(anime));
-}
-
-function SearchCard({ card, onSelectMovie }) {
-  const image = card.bannerImage || card.thumbnail;
-  return (
-    <li>
-      <button
-        type="button"
-        className="anime-search-card"
-        onClick={() => onSelectMovie({
-          ...card,
-          synopsis: card.synopsis || card.description,
-          genres: card.genres?.join(', '),
-        })}
-      >
-        <span className="anime-search-poster">
-          {image ? (
-            <img
-              src={image}
-              className={card.bannerImage ? undefined : 'anime-search-cover'}
-              alt=""
-              loading="lazy"
-            />
-          ) : (
-            <span className="catalog-text-poster" aria-hidden="true">{card.title}</span>
-          )}
-        </span>
-        <span className="anime-search-card-copy">
-          <span>{card.title}</span>
-          {card.year && <small>{card.year}</small>}
-        </span>
-      </button>
-    </li>
-  );
 }
 
 export default function AnimeSearchResults({ query, catalog, onSelectMovie }) {
@@ -113,11 +80,16 @@ export default function AnimeSearchResults({ query, catalog, onSelectMovie }) {
             <h2 id={`search-group-${group.id}`}>{group.label}</h2>
             <a href={group.url} target="_blank" rel="noreferrer">{group.source}</a>
           </div>
-          <ul className="anime-search-grid">
-            {group.items.map((card) => (
-              <SearchCard key={card.id} card={card} onSelectMovie={onSelectMovie} />
-            ))}
-          </ul>
+          <MovieRow
+            movies={group.items}
+            title={group.label}
+            variant="search"
+            onSelectMovie={(card) => onSelectMovie({
+              ...card,
+              synopsis: card.synopsis || card.description,
+              genres: Array.isArray(card.genres) ? card.genres.join(', ') : card.genres,
+            })}
+          />
         </section>
       ))}
     </section>

@@ -32,97 +32,6 @@
   line-height: 1.5;
 }
 
-.anime-search-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(178px, 100%), 1fr));
-  gap: clamp(10px, 1.35vw, 19px);
-  max-width: 1420px;
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-}
-
-.anime-search-card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  overflow: hidden;
-  text-align: left;
-  color: inherit;
-  background: #1a161d;
-  border: 1px solid #372b35;
-  border-radius: 10px;
-  font: inherit;
-  transition: background-color 160ms ease, border-color 160ms ease;
-}
-
-.anime-search-card:hover {
-  background: #251b26;
-  border-color: #bb737e;
-}
-
-.anime-search-card:focus-visible {
-  outline: 2px solid #f3a8ac;
-  outline-offset: 3px;
-}
-
-.anime-search-poster {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: linear-gradient(145deg, #342331, #211a25);
-}
-
-.anime-search-poster img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 220ms ease;
-}
-
-.anime-search-poster .anime-search-cover {
-  object-position: center 26%;
-}
-
-.anime-search-card:hover img {
-  transform: scale(1.035);
-}
-
-.anime-search-card-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 11px 11px;
-}
-
-.anime-search-card-copy span {
-  font-size: 0.9rem;
-  font-weight: 750;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
-.anime-search-card-copy small {
-  color: #c9bdc6;
-  font-size: 0.75rem;
-}
-
-@media (max-width: 440px) {
-  .anime-search-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .anime-search-card,
-  .anime-search-poster img {
-    transition: none;
-  }
-}
-
 .catalog-search-group {
   max-width: 1420px;
   margin: 0 auto 34px;
@@ -147,16 +56,4 @@
   font-size: 0.8rem;
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-.catalog-text-poster {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  padding: 12px;
-  text-align: center;
-  color: #f6d6dd;
-  font-weight: 800;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
 }

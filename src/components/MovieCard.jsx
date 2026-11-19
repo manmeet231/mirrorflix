@@ -15,11 +15,41 @@ const MovieCard = ({
   onPlay,
   onAddToList,
   onLike,
-  onMore
+  onMore,
+  variant
 }) => {
   const [added, setAdded] = useState(false);
   const [liked, setLiked] = useState(false);
   
+  if (variant === 'search') {
+    const image = movie.bannerImage || movie.thumbnail || movie.backdrop || movie.poster;
+    return (
+      <article className="movie-card movie-card--search">
+        <button
+          type="button"
+          className="movie-card-search-button"
+          onClick={() => onClick?.(movie)}
+          aria-label={`Show details for ${movie.title}`}
+        >
+          <span className="movie-card-search-thumbnail">
+            {image ? (
+              <img
+                className={movie.bannerImage ? 'movie-poster' : 'movie-poster movie-poster--cover'}
+                src={image}
+                alt=""
+                loading="lazy"
+              />
+            ) : (
+              <span className="movie-card-search-placeholder" aria-hidden="true">{movie.title}</span>
+            )}
+          </span>
+          <span className="movie-card-search-title">{movie.title}</span>
+          {movie.year && <small>{movie.year}</small>}
+        </button>
+      </article>
+    );
+  }
+
   const truncatedTitle = truncateTitle(movie.title);
 
   const handlePlay = () => {

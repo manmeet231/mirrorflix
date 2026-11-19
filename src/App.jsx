@@ -1,10 +1,7 @@
-import { animeShow } from './components/animeData';
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
-import ContentSection from './components/ContentSection';
 import CategorizedAnimeSection from './components/CategorizedAnimeSection';
-import IntegrationTest from './components/IntegrationTest';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
 import { getCategorizedAnime } from './components/animeDataService';
@@ -49,6 +46,8 @@ const App = () => {
       backgroundImage: "src/assets/moneyheist.jpg"
     }
   ];
+  
+
 
   // Fetch anime data on component mount
   useEffect(() => {
@@ -59,7 +58,7 @@ const App = () => {
         
         // Fetch categorized anime data
         const data = await getCategorizedAnime(
-          { page: 1, perPage: 20 }, 
+          { page: 1, perPage: 100 }, 
           { episodeNumber: 1, mode: 'sub' }
         );
         
@@ -92,12 +91,6 @@ const App = () => {
       <Navbar />
       <main>
         <HeroSection featuredShows={featuredShows} />
-        
-        {/* Integration Test */}
-        <IntegrationTest />
-        
-        {/* Static anime section (can be removed once dynamic data is working) */}
-        <ContentSection title="Featured Anime" movies={[animeShow]} onSelectMovie={handleSelectMovie} />
         
         {/* Dynamic categorized anime section */}
         {animeData && (

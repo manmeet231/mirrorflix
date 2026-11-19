@@ -2,6 +2,13 @@
 import React, { useState } from 'react';
 import './MovieCard.css';
 
+// Function to truncate title to 15 characters with dots
+const truncateTitle = (title) => {
+  if (!title) return '';
+  if (title.length <= 30) return title;
+  return title.substring(0, 30) + '..';
+};
+
 const MovieCard = ({
   movie,
   onClick,
@@ -12,6 +19,8 @@ const MovieCard = ({
 }) => {
   const [added, setAdded] = useState(false);
   const [liked, setLiked] = useState(false);
+  
+  const truncatedTitle = truncateTitle(movie.title);
 
   const handlePlay = () => {
     if (onPlay) {
@@ -137,6 +146,8 @@ const MovieCard = ({
           <div className="movie-metadata">
 
             <div className="movie-meta-top">
+
+              <h3 className="movie-title">{truncatedTitle}</h3>
 
               {match != null && (
                 <span className="match-percentage">

@@ -25,6 +25,7 @@ const ANIME_QUERY = `
         }
         description
         coverImage {
+          extraLarge
           large
           medium
           color
@@ -63,7 +64,7 @@ const ANIME_QUERY = `
 async function fetchAniListAnime(options = {}) {
   const {
     page = 1,
-    perPage = 20,
+    perPage = 100,
     sort = ['TRENDING_DESC'],
     type = 'ANIME'
   } = options;

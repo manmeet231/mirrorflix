@@ -55,6 +55,23 @@
   object-fit: cover;
 }
 
+.movie-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  color: white;
+  padding: 8px 12px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* Footer */
 .movie-footer {
   background: #181818;
@@ -149,6 +166,15 @@
 /* Metadata section */
 .movie-metadata {
   width: 100%;
+}
+
+/* Movie title */
+.movie-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 9px;
+  flex: 0 0 auto;
 }
 
 /* Match, rating, seasons, quality */

@@ -8,14 +8,24 @@ import { hianimeSearch, hianimeEpisodes, hianimeStream } from '../streambert-bro
 
 // Map AniList anime to the format expected by MovieCard components
 function mapAnimeToCardFormat(anime, streamData = null) {
+  // Use bannerImage as poster when available, otherwise use coverImage
+  const poster = anime.bannerImage || 
+                 (anime.coverImage?.extraLarge || anime.coverImage?.large || anime.coverImage?.medium);
+  
+  // Use coverImage for thumbnail (smaller image)
+  const thumbnail = anime.coverImage?.large || anime.coverImage?.medium;
+  
+  // Use coverImage for backdrop when bannerImage is not used as poster
+  const backdrop = anime.bannerImage ? anime.bannerImage : anime.coverImage?.extraLarge;
+  
   return {
     id: anime.id,
     malId: anime.idMal,
     title: anime.title.romaji || anime.title.english || anime.title.native,
     description: anime.description,
-    poster: anime.coverImage?.large || anime.coverImage?.medium,
-    thumbnail: anime.coverImage?.medium,
-    backdrop: anime.bannerImage,
+    poster: poster,
+    thumbnail: thumbnail,
+    backdrop: backdrop,
     genres: anime.genres,
     matchPercentage: anime.averageScore ? `${anime.averageScore}%` : null,
     ageRating: anime.isAdult ? '18+' : 'U/A',
@@ -31,7 +41,10 @@ function mapAnimeToCardFormat(anime, streamData = null) {
     streamUrl: streamData?.masterUrl || null,
     episodes: streamData?.episodes || [],
     isAdult: anime.isAdult,
-    synonyms: anime.synonyms
+    synonyms: anime.synonyms,
+    // Add the original image data for reference
+    coverImage: anime.coverImage,
+    bannerImage: anime.bannerImage
   };
 }
 
@@ -88,7 +101,7 @@ async function getStreamData(animeTitle, episodeNumber = 1, mode = 'sub') {
 
 // Fetch anime with stream data
 async function fetchAnimeWithStreams(options = {}, streamOptions = {}) {
-  const { page = 1, perPage = 10 } = options;
+  const { page = 1, perPage = 100 } = options;
   const { episodeNumber = 1, mode = 'sub' } = streamOptions;
   
   try {

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import MovieCard from './MovieCard';
 import './MovieRow.css';
 
-const MovieRow = ({ title, movies, onSelectMovie }) => {
+const MovieRow = ({ movies, onSelectMovie, title }) => {
   const rowRef = useRef(null);
   const [isLeftVisible, setIsLeftVisible] = useState(false);
   const [isRightVisible, setIsRightVisible] = useState(false);
@@ -33,7 +33,6 @@ const MovieRow = ({ title, movies, onSelectMovie }) => {
 
   return (
     <div className="movie-row">
-      <h2 className="category-title">{title}</h2>
       <div className="movie-row-container">
         <button
           className={`scroll-btn scroll-left ${isLeftVisible ? 'visible' : ''}`}

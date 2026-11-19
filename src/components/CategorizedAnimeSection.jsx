@@ -4,7 +4,7 @@ import MovieCard from './MovieCard';
 import './ContentSection.css';
 
 const CategorizedAnimeSection = ({ 
-  title = "Anime Categories", 
+  title = "Browse Anime", 
   animeData = null, 
   onSelectMovie,
   loading = false,
@@ -19,99 +19,29 @@ const CategorizedAnimeSection = ({
     }
   }, [animeData]);
 
-  // Get available category names
-  const categoryNames = Object.keys(categories).filter(key => 
-    key !== 'Genres' && key !== 'Seasons' && key !== 'Years'
-  );
-
-  // Get anime for the active category
-  const getAnimeForCategory = (categoryName) => {
-    if (categoryName === 'Genres' || categoryName === 'Seasons' || categoryName === 'Years') {
-      // For dynamic categories, return all anime that belong to this category
-      return animeData?.anime || [];
-    }
-    return categories[categoryName] || [];
+  // Get all unique genres from anime data
+  const getAllGenres = () => {
+    if (!animeData?.anime) return [];
+    const genreSet = new Set();
+    animeData.anime.forEach(anime => {
+      if (anime.genres && Array.isArray(anime.genres)) {
+        anime.genres.forEach(genre => genreSet.add(genre));
+      }
+    });
+    return Array.from(genreSet).sort();
   };
 
-  // Get specific category items (for genres, seasons, years)
-  const getSpecificCategoryItems = (categoryType) => {
-    const category = categories[categoryType];
-    if (!category) return [];
-    
-    return Object.entries(category).map(([name, anime]) => ({
-      name,
-      anime,
-      count: anime.length
-    }));
-  };
+  const allGenres = getAllGenres();
+  
 
-  // Render category tabs
-  const renderCategoryTabs = () => {
-    if (!categories || Object.keys(categories).length === 0) {
-      return null;
-    }
+  
+  // Define the order: Currently Airing first, then all genres
+  const categoryOrder = ['Currently Airing', ...allGenres];
 
-    return (
-      <div className="category-tabs">
-        <div className="category-tabs-primary">
-          {categoryNames.map(categoryName => (
-            <button
-              key={categoryName}
-              className={`category-tab ${activeCategory === categoryName ? 'active' : ''}`}
-              onClick={() => setActiveCategory(categoryName)}
-            >
-              {categoryName}
-            </button>
-          ))}
-        </div>
-        
-        {activeCategory === 'Genres' && (
-          <div className="category-subtabs">
-            {getSpecificCategoryItems('Genres').map(item => (
-              <button
-                key={item.name}
-                className={`subtab ${activeCategory === item.name ? 'active' : ''}`}
-                onClick={() => setActiveCategory(item.name)}
-              >
-                {item.name} ({item.count})
-              </button>
-            ))}
-          </div>
-        )}
-        
-        {activeCategory === 'Seasons' && (
-          <div className="category-subtabs">
-            {getSpecificCategoryItems('Seasons').map(item => (
-              <button
-                key={item.name}
-                className={`subtab ${activeCategory === item.name ? 'active' : ''}`}
-                onClick={() => setActiveCategory(item.name)}
-              >
-                {item.name} ({item.count})
-              </button>
-            ))}
-          </div>
-        )}
-        
-        {activeCategory === 'Years' && (
-          <div className="category-subtabs">
-            {getSpecificCategoryItems('Years').map(item => (
-              <button
-                key={item.name}
-                className={`subtab ${activeCategory === item.name ? 'active' : ''}`}
-                onClick={() => setActiveCategory(item.name)}
-              >
-                {item.name} ({item.count})
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
 
-  // Render category content
-  const renderCategoryContent = () => {
+
+  // Render all category rows (Currently Airing + all genres)
+  const renderAllCategoryRows = () => {
     if (loading) {
       return (
         <div className="loading-state">
@@ -129,23 +59,46 @@ const CategorizedAnimeSection = ({
       );
     }
 
-    const animeForCategory = getAnimeForCategory(activeCategory);
+    // Track which anime have been assigned to avoid duplication
+    const assignedAnime = new Set();
     
-    if (!animeForCategory || animeForCategory.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>No anime found in this category.</p>
-        </div>
-      );
-    }
-
     return (
-      <div className="category-content">
-        <MovieRow 
-          title={activeCategory} 
-          movies={animeForCategory} 
-          onSelectMovie={onSelectMovie}
-        />
+      <div className="all-categories">
+        {categoryOrder.map((categoryName) => {
+          let animeForCategory = [];
+          
+          // Get anime for this category
+          if (categoryName === 'Currently Airing') {
+            animeForCategory = categories['Currently Airing'] || [];
+          } else if (allGenres.includes(categoryName)) {
+            animeForCategory = animeData?.anime?.filter(anime => 
+              anime.genres && anime.genres.includes(categoryName)
+            ) || [];
+          }
+          
+          // Filter out anime that have already been assigned to previous categories
+          const filteredAnime = animeForCategory.filter(anime => {
+            if (assignedAnime.has(anime.id)) {
+              return false; // Anime already assigned to a previous category
+            }
+            assignedAnime.add(anime.id);
+            return true;
+          });
+          
+          if (!filteredAnime || filteredAnime.length === 0) {
+            return null; // Skip empty categories
+          }
+          
+          return (
+            <div key={categoryName} className="category-section">
+              <h2 className="category-title">{categoryName}</h2>
+              <MovieRow 
+                movies={filteredAnime} 
+                onSelectMovie={onSelectMovie}
+              />
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -153,10 +106,9 @@ const CategorizedAnimeSection = ({
   return (
     <div className="content-section">
       <div className="section anime-section">
-        <h2 className="section-title">{title}</h2>
+        <h2 className="section-title">Browse Anime</h2>
         
-        {renderCategoryTabs()}
-        {renderCategoryContent()}
+        {renderAllCategoryRows()}
       </div>
     </div>
   );

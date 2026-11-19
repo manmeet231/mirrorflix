@@ -1,9 +1,29 @@
 /* Categorized Anime Section Styles */
 .category-tabs {
-  margin-bottom: 2rem;
+  display: none; /* Hide category tabs since we're showing all rows */
+}
+
+/* All categories container */
+.all-categories {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 3rem;
+}
+
+/* Individual category section */
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Category title styling */
+.category-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  padding-left: 10px;
 }
 
 .category-tabs-primary {

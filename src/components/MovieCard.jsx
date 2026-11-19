@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './MovieCard.css';
 
 // Function to truncate title to 15 characters with dots
@@ -20,15 +20,40 @@ const MovieCard = ({
 }) => {
   const [added, setAdded] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [previewCollapsed, setPreviewCollapsed] = useState(false);
+  const visualButton = useRef(null);
+
+  const openDetails = () => {
+    if (!onClick) return;
+    // The dialog restores focus here when it closes. Keep that focus from expanding the card.
+    setPreviewCollapsed(true);
+    onClick(movie);
+  };
+
+  const previewProps = {
+    'data-preview-collapsed': previewCollapsed || undefined,
+    onPointerMove: (event) => {
+      if (previewCollapsed && event.pointerType !== 'touch') setPreviewCollapsed(false);
+    },
+    onKeyDown: () => {
+      if (previewCollapsed) setPreviewCollapsed(false);
+    },
+    onBlur: (event) => {
+      const next = event.relatedTarget;
+      if (previewCollapsed && next && !event.currentTarget.contains(next) && !next.closest?.('.show-dialog')) {
+        setPreviewCollapsed(false);
+      }
+    },
+  };
   
   if (variant === 'search') {
     const image = movie.bannerImage || movie.thumbnail || movie.backdrop || movie.poster;
     return (
-      <article className="movie-card movie-card--search">
+      <article className="movie-card movie-card--search" {...previewProps}>
         <button
           type="button"
           className="movie-card-search-button"
-          onClick={() => onClick?.(movie)}
+          onClick={openDetails}
           aria-label={`Show details for ${movie.title}`}
         >
           <span className="movie-card-search-thumbnail">
@@ -56,7 +81,8 @@ const MovieCard = ({
     if (onPlay) {
       onPlay(movie);
     } else if (onClick) {
-      onClick(movie);
+      visualButton.current?.focus();
+      openDetails();
     }
   };
 
@@ -84,14 +110,15 @@ const MovieCard = ({
       : [];
 
   return (
-    <article className="movie-card">
+    <article className="movie-card" {...previewProps}>
       <div className="movie-card-expanded">
 
         {/* Movie Image */}
         <button
           type="button"
           className="movie-card-visual"
-          onClick={() => onClick?.(movie)}
+          ref={visualButton}
+          onClick={openDetails}
           aria-label={`Show details for ${movie.title}`}
         >
           <img

@@ -26,13 +26,13 @@
 }
 
 /* Expand on hover or keyboard focus */
-.movie-card:hover,
-.movie-card:focus-within {
+.movie-card:not([data-preview-collapsed]):hover,
+.movie-card:not([data-preview-collapsed]):focus-within {
   z-index: 1000;
 }
 
-.movie-card:hover .movie-card-expanded,
-.movie-card:focus-within .movie-card-expanded {
+.movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+.movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
   width: min(300px, calc(100vw - 40px));
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
 }
@@ -46,6 +46,11 @@
   background: #111;
   cursor: pointer;
   line-height: 0;
+}
+
+.movie-card[data-preview-collapsed] .movie-card-visual:focus-visible {
+  outline: 2px solid #f3a8ac;
+  outline-offset: -2px;
 }
 
 .movie-poster {
@@ -87,8 +92,8 @@
     padding 0.3s ease;
 }
 
-.movie-card:hover .movie-footer,
-.movie-card:focus-within .movie-footer {
+.movie-card:not([data-preview-collapsed]):hover .movie-footer,
+.movie-card:not([data-preview-collapsed]):focus-within .movie-footer {
   max-height: 180px;
   opacity: 1;
   padding: 18px 16px 20px;
@@ -245,8 +250,8 @@
     width: 150px;
   }
 
-  .movie-card:hover .movie-card-expanded,
-  .movie-card:focus-within .movie-card-expanded {
+  .movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+  .movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
     width: min(480px, calc(100vw - 30px));
   }
 
@@ -267,8 +272,8 @@
     width: 100px;
   }
 
-  .movie-card:hover .movie-card-expanded,
-  .movie-card:focus-within .movie-card-expanded {
+  .movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+  .movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
     width: min(90vw, 380px);
   }
 
@@ -351,7 +356,7 @@
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .movie-card--search:hover .movie-card-search-thumbnail {
+  .movie-card--search:not([data-preview-collapsed]):hover .movie-card-search-thumbnail {
     transform: scale(1.2);
   }
 }

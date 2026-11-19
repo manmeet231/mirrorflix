@@ -1,6 +1,6 @@
 .anime-search-results {
   min-height: 68vh;
-  padding: clamp(26px, 5vw, 68px) 4% 72px;
+  padding: clamp(24px, 4vw, 50px) 4% 64px;
   background: radial-gradient(ellipse at 58% 0%, #2a1820 0%, #141015 42%, #0d0c10 74%);
   color: #fbf5f8;
   font-family: 'Manrope', 'Segoe UI', sans-serif;
@@ -8,13 +8,13 @@
 
 .anime-search-heading {
   max-width: 1420px;
-  margin: 0 auto 28px;
-  padding-bottom: 20px;
+  margin: 0 auto 18px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #40323b;
 }
 
 .anime-search-heading h1 {
-  font-size: clamp(1.6rem, 4.5vw, 3.7rem);
+  font-size: clamp(1.45rem, 3vw, 2.5rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.052em;
@@ -26,7 +26,7 @@
 }
 
 .anime-search-heading p {
-  margin-top: 12px;
+  margin-top: 8px;
   color: #c9bdc6;
   font-size: 0.9rem;
   line-height: 1.5;
@@ -34,8 +34,8 @@
 
 .anime-search-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(157px, 100%), 1fr));
-  gap: clamp(12px, 1.7vw, 24px);
+  grid-template-columns: repeat(auto-fill, minmax(min(178px, 100%), 1fr));
+  gap: clamp(10px, 1.35vw, 19px);
   max-width: 1420px;
   margin: 0 auto;
   padding: 0;
@@ -53,7 +53,7 @@
   color: inherit;
   background: #1a161d;
   border: 1px solid #372b35;
-  border-radius: 14px;
+  border-radius: 10px;
   font: inherit;
   transition: background-color 160ms ease, border-color 160ms ease;
 }
@@ -70,7 +70,7 @@
 
 .anime-search-poster {
   width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: linear-gradient(145deg, #342331, #211a25);
 }
@@ -83,6 +83,10 @@
   transition: transform 220ms ease;
 }
 
+.anime-search-poster .anime-search-cover {
+  object-position: center 26%;
+}
+
 .anime-search-card:hover img {
   transform: scale(1.035);
 }
@@ -90,8 +94,8 @@
 .anime-search-card-copy {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 13px;
+  gap: 4px;
+  padding: 10px 11px 11px;
 }
 
 .anime-search-card-copy span {
@@ -106,7 +110,7 @@
   font-size: 0.75rem;
 }
 
-@media (max-width: 390px) {
+@media (max-width: 440px) {
   .anime-search-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

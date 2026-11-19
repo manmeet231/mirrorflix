@@ -69,7 +69,14 @@ export default function AnimeSearchResults({ query, catalog, onSelectMovie }) {
                 })}
               >
                 <span className="anime-search-poster">
-                  {card.thumbnail && <img src={card.thumbnail} alt="" loading="lazy" />}
+                  {(card.bannerImage || card.thumbnail) && (
+                    <img
+                      src={card.bannerImage || card.thumbnail}
+                      className={card.bannerImage ? undefined : 'anime-search-cover'}
+                      alt=""
+                      loading="lazy"
+                    />
+                  )}
                 </span>
                 <span className="anime-search-card-copy">
                   <span>{card.title}</span>

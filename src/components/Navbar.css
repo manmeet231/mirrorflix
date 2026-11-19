@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Manrope';
+  src: url('/fonts/manrope-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+
 .navbar {
   position: fixed;
   top: 0;
@@ -116,41 +124,74 @@
 .anime-search-box {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  padding: 5px 10px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 9px;
+  width: clamp(144px, 24vw, 288px);
+  min-height: 42px;
+  padding: 0 11px;
+  background: #1a171b;
+  border: 1px solid #40383e;
+  border-radius: 12px;
+  color: #ded2d9;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.navbar-right .anime-search-box svg {
+.navbar-right .anime-search-box > svg {
   flex: none;
   width: 18px;
   height: 18px;
-  cursor: default;
+  color: #f3a8ac;
   pointer-events: none;
 }
 
 .anime-search-box:focus-within {
-  border-color: #e50914;
-  background: rgba(0, 0, 0, 0.7);
+  border-color: #f3a8ac;
+  box-shadow: 0 0 0 3px rgba(243, 168, 172, 0.16);
 }
 
 .anime-search-box input {
-  background: transparent;
-  border: none;
-  color: #fff;
-  padding: 5px;
-  width: clamp(90px, 19vw, 200px);
+  flex: 1;
   min-width: 0;
+  width: 100%;
+  height: 40px;
+  padding: 0;
+  appearance: none;
   outline: none;
-  color-scheme: dark;
+  border: 0;
+  background: transparent;
+  color: #fff9fb;
+  font: 600 0.875rem/1.3 'Manrope', 'Segoe UI', sans-serif;
 }
 
 .anime-search-box input::placeholder {
-  color: #b1b1b1;
+  color: #bdb1b8;
+}
+
+.anime-search-box input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.anime-search-clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #ece0e5;
+  background: transparent;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.anime-search-clear:hover {
+  background: #382c36;
+}
+
+.anime-search-clear:focus-visible {
+  outline: 2px solid #f3a8ac;
 }
 
 .user-avatar {
@@ -164,7 +205,7 @@
 
 
 /* Responsive */
-@media (max-width: 940px) {
+@media (max-width: 1010px) {
   .navbar-center {
     display: none;
   }
@@ -185,5 +226,22 @@
 
   .navbar-right > svg {
     display: none;
+  }
+
+  .anime-search-box {
+    width: clamp(154px, 48vw, 220px);
+  }
+}
+
+@media (max-width: 350px) {
+  .anime-search-box {
+    gap: 5px;
+    padding-inline: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anime-search-box {
+    transition: none;
   }
 }

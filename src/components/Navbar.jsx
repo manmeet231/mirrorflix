@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './Navbar.css';
 
 const Navbar = ({ searchQuery, onSearchChange }) => {
+  const searchInput = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('Home');
+
+  const clearSearch = () => {
+    onSearchChange('');
+    searchInput.current?.focus();
+  };
 
   const handleScroll = () => {
     setScrolled(window.scrollY > 50);
@@ -52,6 +58,7 @@ const Navbar = ({ searchQuery, onSearchChange }) => {
             />
           </svg>
           <input
+            ref={searchInput}
             type="search"
             aria-label="Search anime titles"
             placeholder="Search anime"
@@ -61,10 +68,15 @@ const Navbar = ({ searchQuery, onSearchChange }) => {
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 event.preventDefault();
-                onSearchChange('');
+                clearSearch();
               }
             }}
           />
+          {searchQuery && (
+            <button className="anime-search-clear" type="button" aria-label="Clear search" onClick={clearSearch}>
+              <span aria-hidden="true">×</span>
+            </button>
+          )}
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -51,8 +51,10 @@ export default function AnimeSearchResults({ query, catalog, onSelectMovie }) {
 
   return (
     <section className="anime-search-results" aria-labelledby="anime-search-title">
-      <h1 id="anime-search-title">Results for “{query}”</h1>
-      <p role="status">{status}</p>
+      <header className="anime-search-heading">
+        <h1 id="anime-search-title">Results for <span>“{query}”</span></h1>
+        <p role="status">{status}</p>
+      </header>
       {matches.length > 0 && (
         <ul className="anime-search-grid">
           {matches.map((card) => (
@@ -66,9 +68,13 @@ export default function AnimeSearchResults({ query, catalog, onSelectMovie }) {
                   genres: card.genres?.join(', '),
                 })}
               >
-                {card.thumbnail && <img src={card.thumbnail} alt="" loading="lazy" />}
-                <span>{card.title}</span>
-                {card.year && <small>{card.year}</small>}
+                <span className="anime-search-poster">
+                  {card.thumbnail && <img src={card.thumbnail} alt="" loading="lazy" />}
+                </span>
+                <span className="anime-search-card-copy">
+                  <span>{card.title}</span>
+                  {card.year && <small>{card.year}</small>}
+                </span>
               </button>
             </li>
           ))}

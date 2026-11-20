@@ -1,4 +1,4 @@
-﻿"""AniList service for fetching anime data via GraphQL API."""
+"""AniList service for fetching anime data via GraphQL API."""
 import asyncio
 import os
 import time

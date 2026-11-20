@@ -110,4 +110,3 @@ The GitHub workflow deploys only this frontend to an SSH host and runs `npm ci &
 - **Search unavailable:** inspect AniList/TVmaze status and browser CORS/network errors. One-character input intentionally shows local guidance only.
 - **Images work in dev but not production:** use imported assets, not literal `src/assets/...` URLs.
 - **No Play button action:** catalog entries need episodes with valid `videoUrl` values; `streamUrl` alone is not consumed by `MovieModal`.
-

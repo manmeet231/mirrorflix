@@ -162,4 +162,3 @@ Statuses map to Currently Airing, Upcoming, Completed, Hiatus, or Cancelled. `se
 There is no authentication or authorization. Anyone who can reach the service can trigger expensive AniList/database writes. Bind to loopback or protect it with an authenticated reverse proxy, restrict `CORS_ORIGINS`, use HTTPS in production, and add rate limiting before exposing it publicly. CORS is not access control.
 
 Check `logs/sync.log` for upstream failures. For `502`, verify `API_BASE_URL` and the external database. For `429`, wait for the existing request; after a process crash/restart the memory lock resets naturally. AniList throttling can make large syncs take a long time by design.
-

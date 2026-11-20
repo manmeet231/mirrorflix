@@ -1,4 +1,4 @@
-﻿# MirrorFlix
+# MirrorFlix
 
 A React/Vite media catalog with AniList and TVmaze search, an external anime database, and an optional FastAPI synchronization service.
 

@@ -3,26 +3,9 @@
  * Provides browser-compatible versions of Streambert functions
  */
 
-// Check if we're in a browser environment
-const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
-
-// Import Node.js modules only when not in browser
-let streambertFunctions = null;
-
-if (!isBrowser) {
-  try {
-    const streambert = require('./streambert-anime-test');
-    streambertFunctions = {
-      hianimeSearch: streambert.hianimeSearch,
-      hianimeEpisodes: streambert.hianimeEpisodes,
-      hianimeStream: streambert.hianimeStream
-    };
-  } catch (error) {
-    console.error('Failed to load Streambert:', error.message);
-  }
-}
-
-// Browser-compatible versions of the functions
+// This module is used by the browser app. Keep the Node/Electron test runner
+// out of the browser dependency graph; its Node built-ins cannot be bundled by
+// Vite and stream resolution is not implemented as a public browser API.
 async function browserHianimeSearch(query) {
   // In a real implementation, this would make API calls to a proxy server
   // For now, return mock data
@@ -42,7 +25,6 @@ async function browserHianimeStream(epId, mode) {
   return null;
 }
 
-// Export the appropriate functions based on environment
-export const hianimeSearch = isBrowser ? browserHianimeSearch : (streambertFunctions?.hianimeSearch || browserHianimeSearch);
-export const hianimeEpisodes = isBrowser ? browserHianimeEpisodes : (streambertFunctions?.hianimeEpisodes || browserHianimeEpisodes);
-export const hianimeStream = isBrowser ? browserHianimeStream : (streambertFunctions?.hianimeStream || browserHianimeStream);
+export const hianimeSearch = browserHianimeSearch;
+export const hianimeEpisodes = browserHianimeEpisodes;
+export const hianimeStream = browserHianimeStream;

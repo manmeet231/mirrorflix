@@ -23,7 +23,7 @@
   overflow-y: visible;
   scroll-behavior: smooth;
   padding: 0 10px;
-  gap: 10px;
+  gap: 8px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   position: relative;
@@ -32,6 +32,17 @@
 
 .movie-row-posters::-webkit-scrollbar {
   display: none;
+}
+
+/* Skeleton row - disable scrolling, show all 30 cards */
+.movie-row-posters.skeleton-row {
+  overflow-x: visible;
+  scroll-snap-type: none;
+}
+
+.movie-row-posters.skeleton-row .movie-card.skeleton {
+  flex: 0 0 140px;
+  width: 140px;
 }
 
 .scroll-btn {
@@ -98,5 +109,35 @@
     width: 30px;
     height: 60px;
     font-size: 1.2rem;
+  }
+}
+
+/* Search variant styles */
+.movie-row--search {
+  --search-card-width: clamp(156px, 17vw, 232px);
+  padding: 0;
+}
+
+.movie-row--search .movie-row-posters {
+  gap: clamp(10px, 1.35vw, 19px);
+  padding: calc(var(--search-card-width) * 0.06 + 3px) calc(var(--search-card-width) * 0.1 + 3px) 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-padding: calc(var(--search-card-width) * 0.1 + 3px);
+}
+
+.movie-row--search .scroll-btn[hidden] {
+  display: none;
+}
+
+.movie-row--search .scroll-btn {
+  top: 40%;
+  width: 36px;
+  height: 60px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-row--search .movie-row-posters {
+    scroll-behavior: auto;
   }
 }

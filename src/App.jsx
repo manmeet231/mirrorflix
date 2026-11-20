@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import AnimeSearchResults from './components/AnimeSearchResults';
 import HeroSection from './components/HeroSection';
 import CategorizedAnimeSection from './components/CategorizedAnimeSection';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
-import { getCategorizedAnime } from './components/animeDataService';
+import { fetchGenreRows } from './components/dbApiService';
 import './App.css';
 
 const App = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
-  const [animeData, setAnimeData] = useState(null);
+  const [genreRows, setGenreRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const query = searchQuery.trim();
+  const isSearching = query.length > 0;
   
+  // Target genres to display (must have 30+ anime each)
+  const TARGET_GENRES = [
+    'Action',
+    'Drama',
+    'Adventure',
+    'Comedy',
+    'Romance',
+    'Fantasy',
+    'Slice of Life',
+    'Mystery'
+  ];
+
   // Featured shows for carousel
   const featuredShows = [
     {
@@ -55,14 +71,13 @@ const App = () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Fetch genre rows from database API (30 anime per genre, deduplicated)
+        const rows = await fetchGenreRows(TARGET_GENRES, 30);
         
-        // Fetch categorized anime data
-        const data = await getCategorizedAnime(
-          { page: 1, perPage: 100 }, 
-          { episodeNumber: 1, mode: 'sub' }
-        );
-        
-        setAnimeData(data);
+        console.log('App.jsx: Received genreRows:', rows.map(r => ({ name: r.genreName, count: r.animes.length })));
+
+        setGenreRows(rows);
       } catch (err) {
         console.error('Error fetching anime data:', err);
         setError('Failed to load anime data. Please try again later.');
@@ -73,8 +88,10 @@ const App = () => {
 
     fetchAnimeData();
   }, []);
-
   
+  useEffect(() => {
+    if (isSearching) window.scrollTo(0, 0);
+  }, [isSearching]);
 
   // Handle movie selection
   const handleSelectMovie = (movie) => {
@@ -88,25 +105,34 @@ const App = () => {
 
   return (
     <div className="app">
-      <Navbar />
+      <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <main>
-        <HeroSection featuredShows={featuredShows} />
-        
-        {/* Dynamic categorized anime section */}
-        {animeData && (
-          <CategorizedAnimeSection 
-            title="Browse Anime" 
-            animeData={animeData}
+        {isSearching ? (
+          <AnimeSearchResults
+            key={query}
+            query={query}
+            catalog={genreRows.flatMap(r => r.animes)}
             onSelectMovie={handleSelectMovie}
-            loading={loading}
-            error={error}
           />
+        ) : (
+          <>
+            <HeroSection featuredShows={featuredShows} />
+            {/* Dynamic categorized anime section from database */}
+            <CategorizedAnimeSection
+              title="Browse Anime"
+              genreRows={genreRows}
+              onSelectMovie={handleSelectMovie}
+              loading={loading}
+              error={error}
+            />
+          </>
         )}
       </main>
       
       {/* Movie Modal */}
       <MovieModal 
         movie={selectedMovie} 
+        showType={selectedMovie?.mediaType || 'series'}
         isOpen={Boolean(selectedMovie)} 
         onClose={handleCloseModal} 
       />

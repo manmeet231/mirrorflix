@@ -18,4 +18,9 @@ export default defineConfig({
     },
   },
   publicDir: 'public',
+  build: {
+    rollupOptions: {
+      external: ['electron', 'fs', 'path', 'https', 'child_process', 'net', 'crypto', 'http', 'dns'],
+    },
+  },
 })

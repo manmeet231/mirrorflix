@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ searchQuery, onSearchChange }) => {
+  const searchInput = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('Home');
+
+  const clearSearch = () => {
+    onSearchChange('');
+    searchInput.current?.focus();
+  };
 
   const handleScroll = () => {
     setScrolled(window.scrollY > 50);
@@ -11,6 +17,7 @@ const Navbar = () => {
 
   const handleNavClick = (navItem) => {
     setActiveNav(navItem);
+    if (navItem === 'Home') onSearchChange('');
   };
 
   React.useEffect(() => {
@@ -57,7 +64,19 @@ const Navbar = () => {
           />
         </svg>
         <div className="search-bar">
-          <input type="text" placeholder="Titles, people, genres" />
+          <input
+            ref={searchInput}
+            type="text"
+            placeholder="Titles, people, genres"
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                clearSearch();
+              }
+            }}
+          />
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"

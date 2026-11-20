@@ -69,7 +69,9 @@ export default function MovieModal({
       <article className="show-panel">
         <button className="show-close show-circle" onClick={closeModal} aria-label="Close show details">×</button>
         <header className="show-hero">
-          <img className="show-backdrop" src={movie.backdrop || movie.poster} alt="" />
+          {(movie.backdrop || movie.poster) && (
+            <img className="show-backdrop" src={movie.backdrop || movie.poster} alt="" />
+          )}
           <div className="show-hero-content">
             <p className="show-eyebrow">{getShowTypeText()}</p>
             <h1 id={headingId}>{movie.title}</h1>
@@ -105,7 +107,9 @@ export default function MovieModal({
               <div className="show-metadata">
                 <strong>{movie.matchPercentage && `${movie.matchPercentage} match`}</strong>
                 <span>{movie.year}</span>
-                <span>{movie.seasons || `${seasons.length} Seasons`}</span>
+                {(movie.seasons || (!movie.sourceUrl && showType === 'series')) && (
+                  <span>{movie.seasons || `${seasons.length} Seasons`}</span>
+                )}
                 {movie.quality && <span className="show-badge">{movie.quality}</span>}
               </div>
               <p className="show-rating">
@@ -115,6 +119,11 @@ export default function MovieModal({
               <h2 className="show-synopsis-title">Synopsis</h2>
               <p className="show-synopsis">{movie.synopsis}</p>
               {movie.language && <span className="show-language">{movie.language}</span>}
+              {movie.sourceUrl && (
+                <a className="catalog-source-link" href={movie.sourceUrl} target="_blank" rel="noreferrer">
+                  {movie.sourceLabel}
+                </a>
+              )}
             </section>
             <aside className="show-facts">
               {movie.cast && <p><span>Cast: </span>{movie.cast}</p>}
@@ -122,7 +131,7 @@ export default function MovieModal({
               {movie.tags && movie.tags.length > 0 && <p><span>This show is: </span>{movie.tags.join(', ')}</p>}
             </aside>
           </div>
-          {(showType === 'series' || showType === 'documentary') && (
+          {(showType === 'series' || showType === 'documentary') && (!movie.sourceUrl || current.episodes.length > 0) && (
             <section className="show-episodes" aria-label="Episodes">
               <div className="show-episode-header">
                 <h2>Episodes</h2>

@@ -101,7 +101,7 @@ async function getStreamData(animeTitle, episodeNumber = 1, mode = 'sub') {
 
 // Fetch anime with stream data
 async function fetchAnimeWithStreams(options = {}, streamOptions = {}) {
-  const { page = 1, perPage = 100 } = options;
+  const { page = 1, perPage = 150 } = options;
   const { episodeNumber = 1, mode = 'sub' } = streamOptions;
   
   try {

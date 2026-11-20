@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import MovieRow from './MovieRow';
-import MovieCard from './MovieCard';
 import './ContentSection.css';
 
 // Apply z-index fix dynamically
@@ -55,114 +54,119 @@ const applyZIndexFix = () => {
   console.log('Z-index fix applied:', data);
 };
 
+// Skeleton loader for a single movie card
+const MovieCardSkeleton = () => (
+  <article className="movie-card skeleton">
+    <div className="movie-card-expanded">
+      <div className="movie-card-visual skeleton-image"></div>
+      <div className="movie-footer">
+        <div className="movie-actions skeleton-actions">
+          <div className="skeleton-btn"></div>
+          <div className="skeleton-btn"></div>
+          <div className="skeleton-btn"></div>
+        </div>
+        <div className="movie-metadata">
+          <div className="movie-meta-top">
+            <div className="skeleton-title"></div>
+            <div className="skeleton-badge"></div>
+            <div className="skeleton-badge"></div>
+          </div>
+          <div className="movie-genres">
+            <div className="skeleton-genre"></div>
+            <div className="skeleton-genre"></div>
+            <div className="skeleton-genre"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+);
+
+// Skeleton loader for a full row (30 cards)
+const MovieRowSkeleton = () => (
+  <div className="movie-row">
+    <div className="movie-row-container">
+      <button className="scroll-btn scroll-left" disabled aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <div className="movie-row-posters skeleton-row">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <MovieCardSkeleton key={i} />
+        ))}
+      </div>
+      <button className="scroll-btn scroll-right" disabled aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+);
+
 const CategorizedAnimeSection = ({ 
   title = "Browse Anime", 
-  animeData = null, 
+  genreRows = [],
   onSelectMovie,
   loading = false,
   error = null
 }) => {
-  const [activeCategory, setActiveCategory] = useState('Currently Airing');
-  const [categories, setCategories] = useState({});
+  const [displayRows, setDisplayRows] = useState([]);
   
+  // Apply z-index fix when loading completes
   useEffect(() => {
-    if (animeData && animeData.categories) {
-      setCategories(animeData.categories);
-    }
-  }, [animeData]);
-
-  // Apply z-index fix when component mounts and when category sections are available
-  useEffect(() => {
-    if (!loading && !error && animeData) {
-      // Apply the fix after a short delay to ensure DOM is ready
+    if (!loading && !error) {
       const timer = setTimeout(() => {
         applyZIndexFix();
       }, 100);
-      
       return () => clearTimeout(timer);
     }
-  }, [loading, error, animeData]);
+  }, [loading, error]); // Removed displayRows from deps
 
-  // Get all unique genres from anime data
-  const getAllGenres = () => {
-    if (!animeData?.anime) return [];
-    const genreSet = new Set();
-    animeData.anime.forEach(anime => {
-      if (anime.genres && Array.isArray(anime.genres)) {
-        anime.genres.forEach(genre => genreSet.add(genre));
-      }
-    });
-    return Array.from(genreSet).sort();
-  };
-
-  const allGenres = getAllGenres();
-  
-
-  
-  // Define the order: Currently Airing first, then all genres
-  const categoryOrder = ['Currently Airing', ...allGenres];
-
-
-
-  // Render all category rows (Currently Airing + all genres)
-  const renderAllCategoryRows = () => {
+  // Update display rows when genreRows or loading changes
+  useEffect(() => {
     if (loading) {
-      return (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading anime data...</p>
-        </div>
-      );
+      const targetGenres = [
+        'Action',
+        'Drama',
+        'Adventure',
+        'Comedy',
+        'Romance',
+        'Fantasy',
+        'Slice of Life',
+        'Mystery'
+      ];
+      const newRows = targetGenres.map(name => ({ genreName: name, animes: [], isSkeleton: true }));
+      setDisplayRows(prev => {
+        // Only update if different to prevent unnecessary renders
+        if (prev.length !== newRows.length) return newRows;
+        return prev.every((p, i) => p.genreName === newRows[i].genreName && p.isSkeleton === newRows[i].isSkeleton) ? prev : newRows;
+      });
+    } else {
+      const newRows = genreRows.map(row => ({ ...row, isSkeleton: false }));
+      setDisplayRows(prev => {
+        if (prev.length !== newRows.length) return newRows;
+        return prev.every((p, i) => p.genreName === newRows[i].genreName && p.isSkeleton === newRows[i].isSkeleton) ? prev : newRows;
+      });
     }
+  }, [genreRows, loading]);
 
+  const renderCategoryRows = () => {
     if (error) {
-      return (
-        <div className="error-state">
-          <p className="error-message">{error}</p>
-        </div>
-      );
+      return <div className="error-state"><p className="error-message">{error}</p></div>;
     }
-
-    // Track which anime have been assigned to avoid duplication
-    const assignedAnime = new Set();
-    
+    if (displayRows.length === 0) {
+      return <div className="empty-state"><p>No anime data available for the selected genres.</p></div>;
+    }
     return (
       <div className="all-categories">
-        {categoryOrder.map((categoryName) => {
-          let animeForCategory = [];
-          
-          // Get anime for this category
-          if (categoryName === 'Currently Airing') {
-            animeForCategory = categories['Currently Airing'] || [];
-          } else if (allGenres.includes(categoryName)) {
-            animeForCategory = animeData?.anime?.filter(anime => 
-              anime.genres && anime.genres.includes(categoryName)
-            ) || [];
-          }
-          
-          // Filter out anime that have already been assigned to previous categories
-          const filteredAnime = animeForCategory.filter(anime => {
-            if (assignedAnime.has(anime.id)) {
-              return false; // Anime already assigned to a previous category
-            }
-            assignedAnime.add(anime.id);
-            return true;
-          });
-          
-          if (!filteredAnime || filteredAnime.length === 0) {
-            return null; // Skip empty categories
-          }
-          
-          return (
-            <div key={categoryName} className="category-section">
-              <h2 className="category-title">{categoryName}</h2>
-              <MovieRow 
-                movies={filteredAnime} 
-                onSelectMovie={onSelectMovie}
-              />
-            </div>
-          );
-        })}
+        {displayRows.map((row) => (
+          <div key={row.genreName} className="category-section">
+            <h2 className="category-title">{row.genreName}</h2>
+            {row.isSkeleton ? <MovieRowSkeleton /> : <MovieRow movies={row.animes} onSelectMovie={onSelectMovie} />}
+          </div>
+        ))}
       </div>
     );
   };
@@ -171,8 +175,7 @@ const CategorizedAnimeSection = ({
     <div className="content-section">
       <div className="section anime-section">
         <h2 className="section-title">Browse Anime</h2>
-        
-        {renderAllCategoryRows()}
+        {renderCategoryRows()}
       </div>
     </div>
   );

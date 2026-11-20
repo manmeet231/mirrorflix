@@ -21,7 +21,14 @@
  * 5. Output a watchable URL
  */
 
-const { app, ipcMain, net } = require("electron");
+let app;
+let ipcMain;
+let net;
+try {
+  ({ app, ipcMain, net } = require("electron"));
+} catch {
+  // Plain Node uses the HTTP fallback below; Electron is optional.
+}
 const https = require("https");
 const http = require("http");
 const fs = require("fs");
@@ -373,8 +380,8 @@ let _currentVideoReferer = BASE_URL + "/";
 let _currentVideoSubtitle = null;
 let _currentVideoStartTime = 0;
 
-function proxied(u) {
-  return `/proxy?t=${_serverToken}&url=${encodeURIComponent(u)}`;
+function proxied(u, token = _serverToken, prefix = "/proxy") {
+  return `${prefix}?t=${token}&url=${encodeURIComponent(u)}`;
 }
 
 function escapeHtmlAttr(s) {
@@ -391,7 +398,7 @@ function jsonForScript(v) {
     .replace(new RegExp("[\\u2028\\u2029]", "g"), "");
 }
 
-function rewritePlaylist(text, playlistUrl) {
+function rewritePlaylist(text, playlistUrl, token = _serverToken, prefix = "/proxy") {
   const abs = (u) => new URL(u, playlistUrl).href;
   return text
     .split(/\r?\n/)
@@ -401,10 +408,10 @@ function rewritePlaylist(text, playlistUrl) {
       if (t.startsWith("#")) {
         return line.replace(
           /URI="([^"]+)"/g,
-          (_, u) => `URI="${proxied(abs(u))}"`,
+          (_, u) => `URI="${proxied(abs(u), token, prefix)}"`,
         );
       }
-      return proxied(abs(t));
+      return proxied(abs(t), token, prefix);
     })
     .join("\n");
 }
@@ -440,7 +447,7 @@ function buildPlayerHtml(videoUrl, startTime, subtitleUrl, nonce) {
 </body></html>`;
 }
 
-async function proxyRequest(target, req, res, hops = 0) {
+async function proxyRequest(target, req, res, hops = 0, session = {}) {
   let targetUrl;
   try {
     targetUrl = await assertPublicUrl(target);
@@ -452,7 +459,7 @@ async function proxyRequest(target, req, res, hops = 0) {
   const lib = targetUrl.protocol === "https:" ? https : http;
   const headers = {
     "User-Agent": USER_AGENT,
-    Referer: _currentVideoReferer,
+    Referer: session.referer || _currentVideoReferer,
     Accept: "*/*",
     "Accept-Encoding": "identity",
   };
@@ -481,6 +488,7 @@ async function proxyRequest(target, req, res, hops = 0) {
           req,
           res,
           hops + 1,
+          session,
         );
         return;
       }
@@ -511,7 +519,12 @@ async function proxyRequest(target, req, res, hops = 0) {
           let out = text;
           try {
             if (text.trimStart().startsWith("#EXTM3U")) {
-              out = rewritePlaylist(text, target);
+              out = rewritePlaylist(
+                text,
+                target,
+                session.token || _serverToken,
+                session.prefix || "/proxy",
+              );
             }
           } catch {
             res.writeHead(502);
@@ -657,6 +670,71 @@ function getPlayerServer() {
   });
 }
 
+const PLAYBACK_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+const MAX_PLAYBACK_SESSIONS = 50;
+const _playbackSessions = new Map();
+
+function prunePlaybackSessions() {
+  const now = Date.now();
+  for (const [token, session] of _playbackSessions) {
+    if (now - session.lastUsed > PLAYBACK_SESSION_TTL_MS) {
+      _playbackSessions.delete(token);
+    }
+  }
+  while (_playbackSessions.size >= MAX_PLAYBACK_SESSIONS) {
+    _playbackSessions.delete(_playbackSessions.keys().next().value);
+  }
+}
+
+function createPlaybackSession(stream) {
+  prunePlaybackSessions();
+  const token = crypto.randomBytes(24).toString("hex");
+  const prefix = "/api/streambert/proxy";
+  _playbackSessions.set(token, {
+    referer: stream.referer,
+    lastUsed: Date.now(),
+  });
+
+  return {
+    videoUrl: proxied(stream.masterUrl, token, prefix),
+    subtitles: stream.subtitle
+      ? [{
+          src: proxied(stream.subtitle, token, prefix),
+          language: "en",
+          label: "English",
+          default: true,
+        }]
+      : [],
+    resolution: stream.resolution,
+    malId: stream.malId,
+  };
+}
+
+function handlePlaybackProxy(req, res, url) {
+  const token = url.searchParams.get("t") || "";
+  const session = _playbackSessions.get(token);
+  if (!session || Date.now() - session.lastUsed > PLAYBACK_SESSION_TTL_MS) {
+    _playbackSessions.delete(token);
+    res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Playback session expired or is invalid.");
+    return;
+  }
+
+  const target = url.searchParams.get("url");
+  if (!target) {
+    res.writeHead(400);
+    res.end("Missing proxy target.");
+    return;
+  }
+
+  session.lastUsed = Date.now();
+  return proxyRequest(target, req, res, 0, {
+    token,
+    prefix: "/api/streambert/proxy",
+    referer: session.referer,
+  });
+}
+
 // Test Function
 async function testMobPsycho100() {
   console.log("🔍 Testing Mob Psycho 100 Episode 1...");
@@ -771,6 +849,8 @@ module.exports = {
   hianimeSearch,
   hianimeEpisodes,
   hianimeStream,
+  createPlaybackSession,
+  handlePlaybackProxy,
   getPlayerServer,
   testMobPsycho100,
   runAnimeTest,
@@ -941,7 +1021,7 @@ async function interactiveMode() {
 
 
 if (require.main === module) {
-  const startInteractive = () => interactiveAnimeTest().catch((error) => {
+  const startInteractive = () => interactiveMode().catch((error) => {
     console.error(`Fatal scraper error: ${error.message}`);
     process.exitCode = 1;
   });

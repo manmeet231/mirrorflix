@@ -26,6 +26,7 @@ export function mapAnimeToCardFormat(anime, streamData = null) {
     streamUrl: streamData?.masterUrl || null,
     episodes: streamData?.episodes || [],
     isAdult: Boolean(anime.isAdult),
+    mediaType: 'anime',
     synonyms: anime.synonyms || [],
     coverImage: cover,
     bannerImage: anime.bannerImage,

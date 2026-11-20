@@ -24,6 +24,7 @@ npm run preview              # serve the production build locally
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | `http://103.235.105.231:8001` | Origin of the external genre database, without a trailing `/api`. |
+| `VITE_STREAMBERT_API_URL` | `/api/streambert` | Same-origin Streambert API path forwarded by Vite or a production reverse proxy. |
 
 Vite embeds `VITE_*` values in public browser JavaScript; never put secrets in them. An HTTPS frontend cannot call an HTTP API from secure browsers because of mixed-content blocking. The database must also allow the frontend origin through CORS. Restart Vite after changing `.env`.
 
@@ -66,14 +67,16 @@ A failed AniList search falls back to matching titles/synonyms in the already lo
 | `src/components/CategorizedAnimeSection.jsx` | Home rows, skeletons, empty and error states. |
 | `src/components/MovieRow.jsx` | Horizontal rows, scroll buttons, resize/scroll awareness. |
 | `src/components/MovieCard.jsx` | Card/search variants and local like/list button state. |
-| `src/components/MovieModal.jsx` | Native dialog, seasons/episodes, external source links, player launch. |
-| `src/components/VideoPlayer.jsx` | Native HTML5 video controls, captions, fullscreen, keyboard shortcuts. |
+| `src/components/MovieModal.jsx` | Native dialog, numbered anime episodes, stream resolution, player launch. |
+| `src/components/VideoPlayer.jsx` | HTML5/HLS playback, captions, fullscreen, keyboard shortcuts. |
 | `src/components/Hero*` and `CarouselControls.jsx` | Static auto-advancing hero; pauses on hover/touch. |
 | `src/components/Navbar.jsx` | Search input and visual navigation state. |
 | `src/components/Footer.jsx` | Static footer. |
 | `src/components/animeDataService.js` | Legacy eager stream-enrichment workflow; not used by active pages. |
-| `src/streambert-browser-adapter.js` | Empty browser stub plus lazy Node loading for the experimental scraper. |
-| `src/streambert-anime-test.cjs` | Standalone third-party scraping/local-player experiment, not production UI. |
+| `src/streambert-browser-adapter.js` | Browser client for episode lookup and proxied stream resolution. |
+| `src/streambert-anime-test.cjs` | HiAnime extraction, HLS discovery, and per-session media proxy. |
+| `server/streambert-server.cjs` | Local HTTP API connecting the browser to the CommonJS scraper. |
+| `server/dev.cjs` | Starts Vite and Streambert together with coordinated shutdown. |
 
 `animeData.js` and `netflixData.js` are static/demo datasets not imported by the active app. `ContentSection.jsx` is a generic reusable section but is not part of the current home tree.
 
@@ -91,15 +94,19 @@ The backend's `seasons` value is an episode-count label such as `12 Episodes`, n
 
 ## Playback behavior and limits
 
-An episode needs `videoUrl`; optional fields include `thumbnail`, `subtitles`, `description`, and `duration`. Subtitle tracks use `{ src, language, label, default }`. `demoVideo` on a movie is an explicit fallback used only by the static demo dataset. Current database records generally have empty episodes and no playable source.
+For anime (including database records without `mediaType`), opening the modal calls the local Streambert API to search HiAnime and retrieve a sorted episode list. Exact title/synonym matches are preferred. Episodes appear below the synopsis as numbered buttons; there is no season dropdown. Clicking a number resolves its HLS source, opens `VideoPlayer`, and attempts autoplay. Loading, empty, failure, and retry states are shown in the modal.
 
-The player supports browser-compatible progressive media and WebVTT captions. Despite the presence of `hls.js` in dependencies for the experiment, the active `VideoPlayer` does not implement HLS, DRM, quality selection, or authorized stream delivery. Likes/list selections are transient React state and are not persisted. Navbar TV Shows/Movies/My List buttons change visual selection but do not filter content; hero Play/More Info and placeholder footer links are not complete workflows.
+`npm run dev` starts both Vite and the Node Streambert service on `127.0.0.1:3001`. Vite forwards `/api/streambert/*` to it. The service exposes `search`, `episodes`, `stream`, `health`, and token-protected `proxy` routes. Playback sessions expire after two hours and retain the correct per-stream referer. The proxy rewrites nested playlists and forwards byte ranges for segments.
+
+The player lazy-loads HLS.js for `.m3u8` sources when native HLS is unavailable. Progressive MP4 and WebVTT captions remain supported. Autoplay can still be blocked by browser policy, in which case the existing Play control starts playback. Third-party site changes, CORS/network restrictions, unavailable servers, and expired streams can prevent playback.
+
+For non-anime episodes, a direct `videoUrl` still works; `demoVideo` remains an explicit fallback for the static demo. Likes/list selections are transient React state and are not persisted. Navbar TV Shows/Movies/My List buttons change visual selection but do not filter content; hero Play/More Info and placeholder footer links are not complete workflows.
 
 ## Styling and deployment
 
 Component JSX imports its colocated CSS. Category hover/stacking rules are in `CategorizedAnimeSection.css`; no runtime style injection is used. Images are imported so Vite fingerprints them correctly. `vite.config.js` defines the `@` alias for `src`, polling for development, and Node built-ins/Electron as build externals for the optional code.
 
-The GitHub workflow deploys only this frontend to an SSH host and runs `npm ci && npm run build`. Configure `VITE_API_BASE_URL` in the build environment and serve `dist/` with an SPA-capable static host. Backend startup is not part of that workflow.
+The GitHub workflow builds and deploys this frontend over SSH with `npm ci && npm run build`. Configure `VITE_API_BASE_URL` in the build environment and serve `dist/` with an SPA-capable host. For anime playback, production also needs `server/streambert-server.cjs` running beside a reverse proxy that forwards `/api/streambert/*` to it; the workflow does not currently provision that Node process or FastAPI.
 
 `npm audit` currently reports high-severity advisories in Electron 28 and its `extract-zip` dependency. Electron is used only by the optional scraper, not by browser production code. The available fix is a major Electron upgrade and needs separate compatibility testing.
 
@@ -109,4 +116,4 @@ The GitHub workflow deploys only this frontend to an SSH host and runs `npm ci &
 - **Rows missing:** this is expected when fewer than 30 unused anime remain for that genre; earlier genres have priority.
 - **Search unavailable:** inspect AniList/TVmaze status and browser CORS/network errors. One-character input intentionally shows local guidance only.
 - **Images work in dev but not production:** use imported assets, not literal `src/assets/...` URLs.
-- **No Play button action:** catalog entries need episodes with valid `videoUrl` values; `streamUrl` alone is not consumed by `MovieModal`.
+- **No episode buttons or playback:** ensure `npm run dev` started the Streambert service on port `3001`, inspect `/api/streambert/health`, and check the modal error. Direct `videoUrl` entries do not need this service.

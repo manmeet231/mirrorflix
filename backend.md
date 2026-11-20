@@ -14,7 +14,7 @@ POST /api/fetch-anime
 GET/POST genre routes -> routes.py -> db_client.py -> external database API
 ```
 
-The current browser home page talks to the external database directly, not through this service. There is no local SQL database, ORM, authentication layer, background worker, scheduler, WebSocket, or Streambert endpoint.
+The current browser home page talks to the external database directly, not through this service. There is no local SQL database, ORM, authentication layer, background worker, scheduler, WebSocket, or Streambert endpoint in FastAPI. Anime playback uses the separate Node service in `server/streambert-server.cjs`, documented in [frontend.md](frontend.md).
 
 ## Setup and run
 

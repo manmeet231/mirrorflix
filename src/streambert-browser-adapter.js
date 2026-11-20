@@ -1,29 +1,47 @@
-/**
- * Optional Streambert bridge. Browser calls remain disabled until a proxy exists;
- * Node calls load the CommonJS scraper only when one of these functions is used.
- */
-const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
-let nodeModulePromise;
+const configuredBase = import.meta.env?.VITE_STREAMBERT_API_URL;
+const API_BASE = (configuredBase || '/api/streambert').replace(/\/$/, '');
 
-async function loadNodeScraper() {
-  if (isBrowser) return null;
-  nodeModulePromise ||= import('./streambert-anime-test.cjs').then(
-    (module) => module.default || module,
-  );
-  return nodeModulePromise;
+async function requestStreambert(path, { signal, ...options } = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    signal,
+    headers: { Accept: 'application/json', ...options.headers },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `Streambert request failed with HTTP ${response.status}.`);
+  }
+  return payload;
 }
 
-export async function hianimeSearch(query) {
-  const scraper = await loadNodeScraper();
-  return scraper ? scraper.hianimeSearch(query) : [];
+export async function fetchAnimeEpisodes(title, { alternativeTitles = [], signal } = {}) {
+  const params = new URLSearchParams({ title });
+  for (const alternative of alternativeTitles) {
+    if (alternative) params.append('alternativeTitles', alternative);
+  }
+  return requestStreambert(`/episodes?${params}`, { signal });
 }
 
-export async function hianimeEpisodes(showId) {
-  const scraper = await loadNodeScraper();
-  return scraper ? scraper.hianimeEpisodes(showId) : [];
+export async function fetchEpisodeStream(episodeId, { mode = 'sub', signal } = {}) {
+  const params = new URLSearchParams({ episodeId: String(episodeId), mode });
+  return requestStreambert(`/stream?${params}`, { signal });
+}
+
+// Compatibility helpers for the older eager-enrichment service.
+export async function hianimeSearch(query, { signal } = {}) {
+  return requestStreambert(`/search?${new URLSearchParams({ query })}`, { signal });
+}
+
+export async function hianimeEpisodes(showId, { signal } = {}) {
+  return requestStreambert(`/episodes?${new URLSearchParams({ showId })}`, { signal });
 }
 
 export async function hianimeStream(episodeId, mode = 'sub') {
-  const scraper = await loadNodeScraper();
-  return scraper ? scraper.hianimeStream(episodeId, mode) : null;
+  const stream = await fetchEpisodeStream(episodeId, { mode });
+  return {
+    masterUrl: stream.videoUrl,
+    subtitle: stream.subtitles?.[0]?.src || null,
+    resolution: stream.resolution,
+    malId: stream.malId,
+  };
 }

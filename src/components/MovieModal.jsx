@@ -1,8 +1,9 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import VideoPlayer from './VideoPlayer';
+import { fetchAnimeEpisodes, fetchEpisodeStream } from '../streambert-browser-adapter';
 import './MovieModal.css';
 
-// Existing flat episode data is supported; add seasonList for multiple seasons.
+// Anime episodes load on demand; non-anime flat and seasonList data are flattened.
 export default function MovieModal({ 
   movie, 
   isOpen, 
@@ -13,46 +14,113 @@ export default function MovieModal({
   showVideoPlayer = true 
 }) {
   const dialog = useRef(null);
+  const streamController = useRef(null);
   const headingId = useId();
-  const [seasonIndex, setSeasonIndex] = useState(0);
+  const [episodes, setEpisodes] = useState([]);
+  const [episodesLoading, setEpisodesLoading] = useState(false);
+  const [episodeError, setEpisodeError] = useState('');
+  const [episodeRetry, setEpisodeRetry] = useState(0);
+  const [streamLoadingId, setStreamLoadingId] = useState(null);
   const [playing, setPlaying] = useState(null);
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
   const [error, setError] = useState('');
+  const isAnime = movie?.mediaType === 'anime' || !movie?.mediaType;
   
   useEffect(() => {
     if (!isOpen) return;
-    setSeasonIndex(0); 
-    setPlaying(null); 
-    setError(''); 
-    setSaved(false); 
+    setPlaying(null);
+    setEpisodes([]);
+    setEpisodesLoading(false);
+    setEpisodeError('');
+    setStreamLoadingId(null);
+    setError('');
+    setSaved(false);
     setLiked(false);
-    
+    streamController.current?.abort();
+
     const previous = document.activeElement;
     dialog.current?.showModal();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    
+
     return () => {
+      streamController.current?.abort();
       dialog.current?.close();
       document.body.style.overflow = overflow;
       previous?.focus();
     };
   }, [isOpen, movie?.id]);
+
+  useEffect(() => {
+    if (!isOpen || !movie || !isAnime) return;
+    const controller = new AbortController();
+    setEpisodesLoading(true);
+    setEpisodeError('');
+
+    fetchAnimeEpisodes(movie.title, {
+      alternativeTitles: movie.synonyms || [],
+      signal: controller.signal,
+    }).then((catalog) => {
+      if (!controller.signal.aborted) setEpisodes(catalog.episodes || []);
+    }).catch((requestError) => {
+      if (!controller.signal.aborted) setEpisodeError(requestError.message);
+    }).finally(() => {
+      if (!controller.signal.aborted) setEpisodesLoading(false);
+    });
+
+    return () => controller.abort();
+  }, [isOpen, movie?.id, movie?.title, isAnime, episodeRetry]);
   if (!isOpen || !movie) return null;
-  const seasons = movie.seasonList?.length ? movie.seasonList : [{ title: 'Season 1', episodes: movie.episodes || [] }];
-  const current = seasons[seasonIndex] || seasons[0];
-  function play(episode) {
+  const availableEpisodes = isAnime
+    ? episodes
+    : movie.seasonList?.length
+      ? movie.seasonList.flatMap((season) => season.episodes || [])
+      : movie.episodes || [];
+
+  async function play(episode) {
     setError('');
     if (!episode) { setError('No episodes are available yet.'); return; }
     if (onPlay) { onPlay(episode, movie); return; }
     if (!showVideoPlayer) { setError('Playback is disabled for this view.'); return; }
-    if (episode.videoUrl) setPlaying(episode);
-    else if (movie.demoVideo) setPlaying({ ...episode, videoUrl: movie.demoVideo.url, demo: movie.demoVideo, subtitles: [] });
-    else setError('Video is not available yet.');
+    if (episode.videoUrl) { setPlaying(episode); return; }
+
+    if (isAnime && episode.id) {
+      streamController.current?.abort();
+      const controller = new AbortController();
+      streamController.current = controller;
+      setStreamLoadingId(episode.id);
+
+      try {
+        const source = await fetchEpisodeStream(episode.id, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        setPlaying({
+          ...episode,
+          title: episode.title || `Episode ${episode.number}`,
+          videoUrl: source.videoUrl,
+          subtitles: source.subtitles || [],
+        });
+      } catch (requestError) {
+        if (!controller.signal.aborted) setError(requestError.message);
+      } finally {
+        if (streamController.current === controller) {
+          streamController.current = null;
+          setStreamLoadingId(null);
+        }
+      }
+      return;
+    }
+
+    if (movie.demoVideo) {
+      setPlaying({ ...episode, videoUrl: movie.demoVideo.url, demo: movie.demoVideo, subtitles: [] });
+    } else {
+      setError('Video is not available yet.');
+    }
   }
   
   const closeModal = () => {
+    streamController.current?.abort();
+    setStreamLoadingId(null);
     setPlaying(null);
     onClose();
   };
@@ -78,8 +146,8 @@ export default function MovieModal({
             <div className="show-actions">
               <button 
                 className="show-play" 
-                onClick={() => play(current.episodes[0])}
-                disabled={current.episodes.length === 0}
+                onClick={() => play(availableEpisodes[0])}
+                disabled={availableEpisodes.length === 0 || episodesLoading}
               >
                 <span aria-hidden="true">▶︎</span> Play
               </button>
@@ -107,8 +175,8 @@ export default function MovieModal({
               <div className="show-metadata">
                 <strong>{movie.matchPercentage && `${movie.matchPercentage} match`}</strong>
                 <span>{movie.year}</span>
-                {(movie.seasons || (!movie.sourceUrl && showType === 'series')) && (
-                  <span>{movie.seasons || `${seasons.length} Seasons`}</span>
+                {(movie.seasons || (!movie.sourceUrl && showType === 'series' && !isAnime)) && (
+                  <span>{movie.seasons || `${movie.seasonList?.length || 1} Seasons`}</span>
                 )}
                 {movie.quality && <span className="show-badge">{movie.quality}</span>}
               </div>
@@ -131,47 +199,43 @@ export default function MovieModal({
               {movie.tags && movie.tags.length > 0 && <p><span>This show is: </span>{movie.tags.join(', ')}</p>}
             </aside>
           </div>
-          {(showType === 'series' || showType === 'documentary') && (!movie.sourceUrl || current.episodes.length > 0) && (
+          {(isAnime || showType === 'series' || showType === 'documentary') && (!movie.sourceUrl || isAnime || availableEpisodes.length > 0) && (
             <section className="show-episodes" aria-label="Episodes">
               <div className="show-episode-header">
                 <h2>Episodes</h2>
-                <label>
-                  <span className="show-visually-hidden">Select season</span>
-                  <select 
-                    value={seasonIndex} 
-                    onChange={(event) => { setSeasonIndex(Number(event.target.value)); setError(''); }}
-                  >
-                    {seasons.map((season, index) => (
-                      <option key={index} value={index}>
-                        {season.title} ({season.episodes.length} EP)
-                      </option>
-                    ))}
-                  </select>
-                </label>
               </div>
-              <ol className="show-episode-list">
-                {current.episodes.map((episode, index) => (
-                  <li key={episode.id || index}>
-                    <button 
-                      className={`show-episode ${playing?.id === episode.id ? 'is-playing' : ''}`} 
-                      onClick={() => play(episode)} 
-                      aria-label={`Play episode ${index + 1}: ${episode.title}`}
-                    >
-                      <span className="show-episode-number">{index + 1}</span>
-                      <span className="show-thumbnail">
-                        <img src={episode.thumbnail || movie.poster} alt="" loading="lazy" />
-                        <span aria-hidden="true">▶︎</span>
-                      </span>
-                      <span className="show-episode-copy">
-                        <span className="show-episode-title">{episode.title}</span>
-                        <span className="show-episode-description">{episode.description}</span>
-                      </span>
-                      <span className="show-duration">{episode.duration}</span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-              {!current.episodes.length && <p>Episodes are coming soon.</p>}
+              {isAnime && episodesLoading && <p role="status">Loading episodes…</p>}
+              {isAnime && episodeError && (
+                <div className="show-episode-error" role="alert">
+                  <p>{episodeError}</p>
+                  <button type="button" onClick={() => setEpisodeRetry((value) => value + 1)}>Try again</button>
+                </div>
+              )}
+              {!episodesLoading && !episodeError && availableEpisodes.length === 0 && (
+                <p>No episodes were found for this title.</p>
+              )}
+              {availableEpisodes.length > 0 && (
+                <div className="show-episode-grid">
+                  {availableEpisodes.map((episode, index) => {
+                    const number = episode.number || index + 1;
+                    const isLoading = streamLoadingId === episode.id;
+                    return (
+                      <button
+                        type="button"
+                        key={episode.id || number}
+                        className={`show-episode-button ${isLoading ? 'is-loading' : ''}`}
+                        onClick={() => play(episode)}
+                        disabled={streamLoadingId !== null}
+                        aria-label={`Play episode ${number}`}
+                        aria-busy={isLoading}
+                      >
+                        {number}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {streamLoadingId !== null && <p role="status">Resolving episode stream…</p>}
             </section>
           )}
         </div>

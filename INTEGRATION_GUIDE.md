@@ -9,19 +9,21 @@ The production frontend and optional FastAPI sync service are documented in [fro
 - TV-series search calls TVmaze directly from the browser.
 - The FastAPI service on port `8002` is an administrative proxy/synchronization service. It is not required by the current home-page browser code, but it needs the external database API on port `8001`.
 
-## Experimental Streambert integration
+## Streambert playback integration
 
-`src/streambert-anime-test.cjs` is a standalone CommonJS/Electron-aware scraper and local-player experiment. It is not part of the Vite production import graph. `src/streambert-browser-adapter.js` returns empty results in a browser and dynamically loads the scraper only in Node.
+`src/streambert-anime-test.cjs` contains the HiAnime search, episode extraction, HLS discovery, and media-proxy implementation. `server/streambert-server.cjs` exposes it to the browser under `/api/streambert/*`; `src/streambert-browser-adapter.js` is the browser client. `npm run dev` starts the API on port `3001` together with Vite, which forwards the same-origin API path.
 
-Run the interactive experiment with:
+Opening an anime modal retrieves numbered episodes. Selecting one resolves its stream and creates an expiring per-stream proxy session. `VideoPlayer` lazy-loads HLS.js where native HLS is unavailable and attempts autoplay.
+
+The standalone interactive experiment remains available with:
 
 ```bash
 node src/streambert-anime-test.cjs
 ```
 
-This depends on third-party site markup, network access, and Electron when Electron's `net.fetch` path is desired. It is not a stable or supported browser API. No endpoint in the FastAPI service exposes it.
+This depends on third-party site markup and network access. Electron is optional; plain Node uses the built-in HTTP fallback. Browser playback uses the local API/proxy, not a FastAPI endpoint. Production must deploy the Node service and equivalent reverse-proxy forwarding.
 
-`src/components/animeDataService.js` contains the older eager stream-enrichment workflow. The active home page does not call it; normal search uses the pure mapper in `src/components/animeMapper.js` so the scraper is not bundled into the application.
+`src/components/animeDataService.js` retains the older eager-enrichment compatibility workflow. Active modals call `fetchAnimeEpisodes` and `fetchEpisodeStream` on demand instead of resolving streams for every visible card.
 
 ## Verification
 

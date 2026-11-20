@@ -43,8 +43,8 @@ The automated tests are offline. Live third-party APIs, database writes, browser
 
 ## Important boundaries
 
-- The current browser does not call FastAPI directly.
+- The current browser does not call FastAPI directly; anime playback uses the separate local Node Streambert service started by `npm run dev`.
 - Catalog likes/list selections and navbar filters are not persisted or fully implemented.
-- Playback requires episode `videoUrl` data; the active player does not provide HLS or DRM.
-- Streambert is a standalone experiment and is not a production browser API.
+- Anime episodes are resolved through the local Streambert/HLS proxy; third-party availability and browser autoplay policies apply.
+- Streambert depends on third-party pages and stream hosts; its Node service must also be deployed for production anime playback.
 - The sync service has no authentication and should not be exposed publicly without protection.

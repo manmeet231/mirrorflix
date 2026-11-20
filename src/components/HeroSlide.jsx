@@ -1,7 +1,8 @@
 import React from 'react';
 import './HeroSlide.css';
+import playButton from '../assets/playbutton.svg';
 
-const HeroSlide = ({ show, isActive }) => {
+const HeroSlide = ({ show, isActive, onSelectMovie }) => {
   return (
     <div className={`hero-slide ${isActive ? 'active' : ''}`}>
       <div 
@@ -21,15 +22,15 @@ const HeroSlide = ({ show, isActive }) => {
           {show.description}
         </p>
         <div className="hero-buttons">
-          <button className="play-btn">
+          <button className="play-btn" onClick={() => onSelectMovie?.(show)}>
             <img
-              src="/src/assets/playbutton.svg"
+              src={playButton}
               alt="Play"
               className="play-icon"
             />
             Play
           </button>
-          <button className="more-info-btn">
+          <button className="more-info-btn" onClick={() => onSelectMovie?.(show)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

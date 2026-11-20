@@ -123,6 +123,10 @@ const CategorizedAnimeSection = ({
       );
     }
 
+    if (!animeData?.anime?.length) {
+      return <p className="catalog-state">No anime has been added to the catalog yet.</p>;
+    }
+
     // Track which anime have been assigned to avoid duplication
     const assignedAnime = new Set();
     

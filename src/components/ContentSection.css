@@ -22,6 +22,16 @@
   z-index: 0;
 }
 
+.catalog-state {
+  margin: 0 8px 20px;
+  color: #b8b8b8;
+  font-size: 0.95rem;
+}
+
+.catalog-error {
+  color: #ffb3b3;
+}
+
 /* Anime Section styles */
 .anime-section {
   padding: 20px 5%;

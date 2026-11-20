@@ -5,6 +5,7 @@ import './HeroSection.css';
 
 const HeroSection = ({ 
   featuredShows = [], 
+  onSelectMovie,
   autoPlayDelay = 7000,
   height = '85vh',
   showControls = true 
@@ -74,6 +75,7 @@ const HeroSection = ({
             key={show.id} 
             show={show} 
             isActive={index === currentSlide}
+            onSelectMovie={onSelectMovie}
           />
         ))}
       </div>

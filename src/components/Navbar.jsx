@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ onSearch }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('Home');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleScroll = () => {
     setScrolled(window.scrollY > 50);
@@ -11,6 +12,11 @@ const Navbar = () => {
 
   const handleNavClick = (navItem) => {
     setActiveNav(navItem);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    onSearch?.(searchQuery.trim());
   };
 
   React.useEffect(() => {
@@ -56,9 +62,15 @@ const Navbar = () => {
             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
           />
         </svg>
-        <div className="search-bar">
-          <input type="text" placeholder="Titles, people, genres" />
-        </div>
+        <form className="search-bar" onSubmit={handleSearchSubmit} role="search">
+          <input
+            type="search"
+            aria-label="Search movie titles"
+            placeholder="Search movie titles"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </form>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

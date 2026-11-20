@@ -3,30 +3,33 @@ from .models import Title, Genre, TitleGenre, Season, Episode
 from .schemas import TitleIn
 
 
-def upsert_title(session, item: TitleIn, *, legacy=None):
+def upsert_title(session, item: TitleIn, *, legacy=None, preserve_unset=False):
     row = session.scalar(select(Title).where(Title.source == item.source, Title.media_type == item.media_type, Title.source_id == item.source_id))
     created = row is None
     if row is None:
         row = Title(source=item.source, media_type=item.media_type, source_id=item.source_id)
         session.add(row)
-    scalar = item.model_dump(exclude={"genres", "cast", "seasons"})
+    scalar = item.model_dump(exclude={"genres", "cast", "seasons"}, exclude_unset=preserve_unset)
     for key, value in scalar.items():
         setattr(row, key, value)
-    row.cast = [person.model_dump() for person in item.cast]
+    if not preserve_unset or "cast" in item.model_fields_set:
+        row.cast = [person.model_dump() for person in item.cast]
     if legacy is not None:
-        row.legacy = legacy
+        row.legacy = {**(row.legacy or {}), **legacy}
     session.flush()
     # Keep old memberships; repeated genre-wise legacy posts must not erase links.
-    current_genres = {link.genre.name for link in row.genre_links}
+    # Use database identities, not display-name spelling: MySQL may consider
+    # 'Drama' and 'drama' equal under its configured collation.
+    current_genre_ids = {link.genre_id for link in row.genre_links}
     for name in item.genres:
-        if name not in current_genres:
-            genre = session.scalar(select(Genre).where(Genre.name == name))
-            if genre is None:
-                genre = Genre(name=name)
-                session.add(genre)
-                session.flush()
+        genre = session.scalar(select(Genre).where(Genre.name == name))
+        if genre is None:
+            genre = Genre(name=name)
+            session.add(genre)
+            session.flush()
+        if genre.id not in current_genre_ids:
             row.genre_links.append(TitleGenre(genre=genre))
-            current_genres.add(name)
+            current_genre_ids.add(genre.id)
     if item.seasons is not None:
         by_season = {season.number: season for season in row.seasons}
         for season_in in item.seasons:
@@ -56,12 +59,12 @@ def serialize(row):
 
 
 def legacy_item(row):
-    if row.legacy:
-        return {**row.legacy, "genres": sorted(link.genre.name for link in row.genre_links)}
-    return {"id": row.source_id if row.source == "anilist" else f"{row.source}:{row.media_type}:{row.source_id}", "title": row.title,
+    return {**(row.legacy or {}), "id": row.source_id if row.source == "anilist" else f"{row.source}:{row.media_type}:{row.source_id}", "title": row.title,
             "synopsis": row.synopsis, "description": row.synopsis, "poster": row.poster_url,
-            "thumbnail": row.poster_url, "backdrop": row.backdrop_url,
+            "thumbnail": (row.legacy or {}).get("thumbnail") or row.poster_url, "backdrop": row.backdrop_url,
             "genres": sorted(link.genre.name for link in row.genre_links),
             "year": row.release_year, "ageRating": row.age_rating,
             "matchPercentage": f"{round(row.rating * 10)}%" if row.rating is not None else None,
-            "seasons": row.season_count, "episodes": [], "streamUrl": None}
+            "seasons": (row.legacy or {}).get("seasons", row.season_count),
+            "episodes": (row.legacy or {}).get("episodes", []),
+            "streamUrl": (row.legacy or {}).get("streamUrl")}

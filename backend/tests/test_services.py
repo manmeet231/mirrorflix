@@ -75,5 +75,19 @@ class AniListPaginationTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(reached)
 
 
+class DatabaseLoggingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_errors_do_not_log_credentials_or_raw_error(self):
+        import aiohttp
+        client = DatabaseClient('https://user:private-password@database.example')
+        client.session = Mock(closed=False)
+        client.session.request.side_effect = aiohttp.ClientConnectionError('private-password query-token')
+        with patch('services.db_client.logger.error') as log:
+            with self.assertRaises(DatabaseAPIError):
+                await client._request('GET', '/api/genres')
+        self.assertNotIn('private-password', str(log.call_args))
+        self.assertNotIn('query-token', str(log.call_args))
+        self.assertNotIn('database.example', str(log.call_args))
+
+
 if __name__ == "__main__":
     unittest.main()

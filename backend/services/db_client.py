@@ -57,7 +57,7 @@ class DatabaseClient:
         except DatabaseAPIError:
             raise
         except (aiohttp.ClientError, asyncio.TimeoutError) as error:
-            logger.error("Database request failed: %s %s: %s", method, url, error)
+            logger.error("Database request failed: method=%s error_type=%s", method, type(error).__name__)
             raise DatabaseAPIError(502, "Database API is unavailable.") from error
 
     async def get_genres(self) -> List[Dict[str, Any]]:

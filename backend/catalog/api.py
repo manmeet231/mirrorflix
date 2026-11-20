@@ -114,20 +114,34 @@ def create_app(engine=None, write_token=None):
         try:
             for item in body.animes:
                 # Legacy AniList objects use format (TV/MOVIE) as 'rating', not a score.
-                score = item.get("matchPercentage")
-                score = float(str(score).rstrip("%")) / 10 if score is not None else None
                 item_genres = item.get("genres") or []
-                converted.append(TitleIn(source="anilist", source_id=str(item.get("id") or ""), media_type="anime",
-                    title=item.get("title", ""), synopsis=item.get("description") or item.get("synopsis"),
-                    release_year=item.get("year"), rating=score, age_rating=item.get("ageRating"),
-                    poster_url=item.get("poster"), backdrop_url=item.get("backdrop"),
-                    genres=list(dict.fromkeys([name, *item_genres]))))
+                if not isinstance(item_genres, list) or any(not isinstance(g, str) for g in item_genres):
+                    raise ValueError("genres must be a string array")
+                payload = {
+                    "source": "anilist", "source_id": str(item.get("id") or ""),
+                    "media_type": "anime", "title": item.get("title", ""),
+                    "genres": list(dict.fromkeys([name, *item_genres])),
+                }
+                # Legacy sync is a partial update. Omitted values must not erase
+                # richer canonical data, while explicit null can clear a field.
+                for old_key, new_key in {
+                    "year": "release_year", "ageRating": "age_rating",
+                    "poster": "poster_url", "backdrop": "backdrop_url",
+                }.items():
+                    if old_key in item:
+                        payload[new_key] = item[old_key]
+                if "description" in item or "synopsis" in item:
+                    payload["synopsis"] = item.get("description", item.get("synopsis"))
+                if "matchPercentage" in item:
+                    score = item["matchPercentage"]
+                    payload["rating"] = float(str(score).rstrip("%")) / 10 if score is not None else None
+                converted.append(TitleIn(**payload))
         except (ValueError, TypeError, ValidationError):
             raise HTTPException(422, "Invalid legacy anime payload; id, title and valid metadata required")
         try:
             with db.begin():
                 for data, original in zip(converted, body.animes):
-                    upsert_title(db, data, legacy=original)
+                    upsert_title(db, data, legacy=original, preserve_unset=True)
         except IntegrityError:
             raise HTTPException(409, "Concurrent catalog write; retry the batch")
         return {"success": True, "processed": len(converted)}

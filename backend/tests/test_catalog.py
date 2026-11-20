@@ -122,3 +122,54 @@ class CatalogTests(unittest.TestCase):
     def test_request_size_is_bounded(self):
         response = self.client.post('/api/titles/batch', content=b'x' * (4 * 1024 * 1024 + 1), headers={**AUTH, 'Content-Type': 'application/json'})
         self.assertEqual(response.status_code, 413)
+
+    def test_legacy_refresh_preserves_rich_fields_missing_from_legacy_payload(self):
+        rich = {**SAMPLE, 'source': 'anilist', 'media_type': 'anime'}
+        title_id = self.post([rich]).json()['ids'][0]
+        response = self.client.post('/api/genres/Drama/animes', json={'animes': [
+            {'id': '42', 'title': 'Updated anime title', 'genres': ['Drama']}
+        ]}, headers=AUTH)
+        self.assertEqual(response.status_code, 200, response.text)
+        data = self.client.get(f'/api/titles/{title_id}').json()
+        self.assertEqual(data['title'], 'Updated anime title')
+        self.assertEqual(data['rating'], 8.4)
+        self.assertEqual(data['synopsis'], 'Story')
+        self.assertEqual(data['episode_count'], 2)
+        self.assertEqual(data['cast'][0]['name'], 'Actor')
+        self.assertEqual(len(data['seasons'][0]['episodes']), 2)
+
+    def test_legacy_cache_preserves_extras_but_uses_latest_canonical_values(self):
+        initial = {'id': '42', 'title': 'Old', 'description': 'Old synopsis', 'genres': ['Drama'],
+                   'matchPercentage': '60%', 'thumbnail': 'small-cover.jpg', 'rating': 'TV', 'malId': 123}
+        self.assertEqual(self.client.post('/api/genres/Drama/animes', json={'animes': [initial]}, headers=AUTH).status_code, 200)
+        rich = {**SAMPLE, 'source': 'anilist', 'media_type': 'anime', 'title': 'Canonical new title'}
+        self.post([rich])
+        self.client.post('/api/genres/Drama/animes', json={'animes': [{'id': '42', 'title': 'Latest'}]}, headers=AUTH)
+        result = self.client.get('/api/genres/Drama').json()['animes'][0]
+        self.assertEqual(result['title'], 'Latest')
+        self.assertEqual(result['description'], 'Story')
+        self.assertEqual(result['matchPercentage'], '84%')
+        self.assertEqual(result['malId'], 123)
+        self.assertEqual(result['thumbnail'], 'small-cover.jpg')
+        self.assertEqual(result['rating'], 'TV')
+        self.assertEqual(result['seasons'], 1)
+
+    def test_explicit_legacy_null_can_clear_only_the_supplied_field(self):
+        title_id = self.post([{**SAMPLE, 'source': 'anilist', 'media_type': 'anime'}]).json()['ids'][0]
+        response = self.client.post('/api/genres/Drama/animes', json={'animes': [
+            {'id': '42', 'title': 'Updated', 'matchPercentage': None}
+        ]}, headers=AUTH)
+        self.assertEqual(response.status_code, 200)
+        result = self.client.get(f'/api/titles/{title_id}').json()
+        self.assertIsNone(result['rating'])
+        self.assertEqual(result['synopsis'], 'Story')
+        self.assertEqual(result['cast'][0]['name'], 'Actor')
+
+    def test_legacy_genres_rejects_strings_and_non_string_members(self):
+        for genres in ['Drama', [123], {'name': 'Drama'}]:
+            with self.subTest(genres=genres):
+                result = self.client.post('/api/genres/Drama/animes', json={'animes': [
+                    {'id': '42', 'title': 'Invalid', 'genres': genres}
+                ]}, headers=AUTH)
+                self.assertEqual(result.status_code, 422)
+        self.assertEqual(self.client.get('/api/titles').json()['items'], [])

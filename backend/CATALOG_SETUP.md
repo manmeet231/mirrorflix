@@ -44,7 +44,7 @@ Imports upsert; they never delete titles. A metadata-only refresh (`seasons=null
 preserves season/episode detail. Supplied seasons/episodes are upserted by number;
 missing ones and previous genre memberships remain. Supplied scalar metadata and
 cast replace the previous values, including explicit null/empty values. This is
-an import contract, not a partial PATCH or delete API. Canonical import schema is
+a canonical import contract, not a partial PATCH or delete API. The legacy genre POST is an exception: omitted fields preserve richer stored metadata, while explicit null clears a supplied mapped scalar. Legacy extra fields are retained, and read responses use current canonical values. Canonical import schema is
 strict; unknown fields, invalid ratings, duplicate season/episode numbers, empty
 titles or more than 100 titles per batch are rejected. Buffered request bodies are capped at 4 MiB (413 on excess).
 
@@ -269,3 +269,27 @@ validation, rich persistence, idempotency, page limits, rollback, legacy compati
 provider mapping, retries, dry-run/no-write behaviour and credential separation.
 Real MySQL 8.4 smoke tests were run in an isolated local container; details and
 production limitations are in the PR. No TMDB live account or VPS database was used.
+
+
+### Reproducing the isolated review checks
+
+Default unit tests explicitly use temporary/in-memory SQLite; the optional MySQL
+integration test has no fallback to DATABASE_URL. Only opt into it with a disposable
+loopback MySQL database whose name starts with `codex_test_`:
+
+```sh
+# Set CATALOG_TEST_MYSQL_URL privately to that disposable local test database.
+python -m unittest tests.test_catalog_mysql -v
+```
+
+Without this variable, that one integration test is skipped. Non-loopback hosts,
+non-MySQL drivers and other database names are rejected. Never point test settings
+at a production database or production SSH tunnel. These tests create catalog
+tables and fixture rows only in the explicitly provided disposable database.
+
+PR review regressions cover partial legacy refresh data preservation, explicit
+null handling, stale legacy caches, malformed genre input, sanitized connection
+failure logs, and MySQL collation-equivalent genre names. Genre links are deduplicated
+by database genre identity so case-insensitive MySQL collations do not cause
+permanent duplicate-key conflicts. Connection error logs include the operation
+and exception class only, not the URL, credentials, or raw exception contents.

@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 from services.anilist_service import fetch_anime_status_paginated, AniListService
-from services.db_client import DatabaseClient
+from services.db_client import DatabaseClient, DatabaseAPIError
 
 
 class DatabaseClientTests(unittest.IsolatedAsyncioTestCase):
@@ -26,6 +26,19 @@ class DatabaseClientTests(unittest.IsolatedAsyncioTestCase):
         client._request.assert_awaited_once_with(
             "POST", "/api/genres/Action/animes", json={"animes": [{"id": "1"}]}
         )
+
+    async def test_catalog_token_is_forwarded_without_logging_it(self):
+        import os
+        with patch.dict(os.environ, {"CATALOG_WRITE_TOKEN": "test-token"}), patch('services.db_client.aiohttp.ClientSession') as constructor:
+            client = DatabaseClient('http://127.0.0.1:8001')
+            await client.start_session()
+            self.assertEqual(constructor.call_args.kwargs['headers'], {'Authorization': 'Bearer test-token'})
+
+    async def test_catalog_token_refuses_remote_plaintext_transport(self):
+        import os
+        with patch.dict(os.environ, {"CATALOG_WRITE_TOKEN": "test-token"}):
+            with self.assertRaises(DatabaseAPIError):
+                await DatabaseClient('http://database.example').start_session()
 
     async def test_empty_post_does_not_call_database(self):
         client = DatabaseClient()
@@ -60,6 +73,20 @@ class AniListPaginationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(anime, [{"id": 2}])
         self.assertFalse(reached)
+
+
+class DatabaseLoggingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_errors_do_not_log_credentials_or_raw_error(self):
+        import aiohttp
+        client = DatabaseClient('https://user:private-password@database.example')
+        client.session = Mock(closed=False)
+        client.session.request.side_effect = aiohttp.ClientConnectionError('private-password query-token')
+        with patch('services.db_client.logger.error') as log:
+            with self.assertRaises(DatabaseAPIError):
+                await client._request('GET', '/api/genres')
+        self.assertNotIn('private-password', str(log.call_args))
+        self.assertNotIn('query-token', str(log.call_args))
+        self.assertNotIn('database.example', str(log.call_args))
 
 
 if __name__ == "__main__":

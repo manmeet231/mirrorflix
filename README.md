@@ -17,7 +17,7 @@ Copy-Item .env.example .env
 npm run dev
 ```
 
-The frontend expects an external genre database at the configured `VITE_API_BASE_URL`. The database implementation is not included here.
+The frontend expects a genre database at the configured `VITE_API_BASE_URL`. An optional persistent MySQL catalog implementation and TMDB batch importer are now available; see [backend/CATALOG_SETUP.md](backend/CATALOG_SETUP.md).
 
 To run the optional sync service:
 

@@ -2,7 +2,7 @@
 import asyncio
 import os
 from typing import Any, Dict, List, Optional
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import aiohttp
 
@@ -30,7 +30,12 @@ class DatabaseClient:
 
     async def start_session(self):
         if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession(timeout=self.timeout)
+            token = os.getenv("CATALOG_WRITE_TOKEN", "")
+            target = urlsplit(self.api_base_url)
+            if token and (target.username or target.password or target.scheme not in {"http", "https"} or (target.scheme == "http" and target.hostname not in {"127.0.0.1", "localhost", "::1"})):
+                raise DatabaseAPIError(502, "Authenticated database API requires HTTPS or localhost")
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+            self.session = aiohttp.ClientSession(timeout=self.timeout, headers=headers)
 
     async def close(self):
         if self.session and not self.session.closed:
@@ -52,7 +57,7 @@ class DatabaseClient:
         except DatabaseAPIError:
             raise
         except (aiohttp.ClientError, asyncio.TimeoutError) as error:
-            logger.error("Database request failed: %s %s: %s", method, url, error)
+            logger.error("Database request failed: method=%s error_type=%s", method, type(error).__name__)
             raise DatabaseAPIError(502, "Database API is unavailable.") from error
 
     async def get_genres(self) -> List[Dict[str, Any]]:

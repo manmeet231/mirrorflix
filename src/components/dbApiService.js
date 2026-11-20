@@ -1,125 +1,62 @@
-/**
- * Database API Service
- * Fetches anime data from the MirrorFlix database API (port 8001)
- */
+const configuredBaseUrl = import.meta.env?.VITE_API_BASE_URL;
+const API_BASE_URL = (configuredBaseUrl || 'http://103.235.105.231:8001').replace(/\/$/, '');
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://103.235.105.231:8001';
+async function requestDatabase(path, { signal, notFoundValue, ...options } = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    signal,
+    headers: { Accept: 'application/json', ...options.headers },
+  });
 
-/**
- * Fetch all genres with their anime from the database
- * @returns {Promise<Array>} Array of genre objects: [{id, name, animes: [...]}]
- */
-export async function fetchGenresFromDB() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/genres`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching genres from database:', error);
-    throw error;
-  }
+  if (response.status === 404 && notFoundValue !== undefined) return notFoundValue;
+  if (!response.ok) throw new Error(`Database request failed with HTTP ${response.status}.`);
+  return response.json();
 }
 
-/**
- * Fetch a specific genre by name
- * @param {string} genreName - Name of the genre
- * @returns {Promise<Object>} Genre object with animes
- */
-export async function fetchGenreByName(genreName) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/genres/${encodeURIComponent(genreName)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Error fetching genre ${genreName}:`, error);
-    throw error;
-  }
+export async function fetchGenresFromDB({ signal } = {}) {
+  const genres = await requestDatabase('/api/genres', { signal });
+  if (!Array.isArray(genres)) throw new Error('Database returned an invalid genre catalog.');
+  return genres;
 }
 
-/**
- * Get anime for specific genres, limited to 30 per genre, with cross-genre deduplication
- * @param {string[]} targetGenres - Array of genre names to fetch
- * @param {number} limitPerGenre - Max anime per genre (default: 30)
- * @returns {Promise<Array>} Array of {genreName, animes: [...]} for genres with 30+ anime
- */
-export async function fetchGenreRows(targetGenres, limitPerGenre = 30) {
-  try {
-    console.log('fetchGenreRows: Fetching genres from DB...', { targetGenres, limitPerGenre });
-    
-    // Fetch all genres from database
-    const allGenres = await fetchGenresFromDB();
-    
-    console.log('fetchGenreRows: All genres from DB:', allGenres.map(g => ({ name: g.name, count: (g.animes || []).length })));
-
-    // Create a map for quick lookup (case-sensitive)
-    const genreMap = {};
-    allGenres.forEach(genre => {
-      genreMap[genre.name] = genre.animes || [];
-    });
-
-    console.log('fetchGenreRows: Genre map keys:', Object.keys(genreMap));
-
-    // Track assigned anime IDs for deduplication
-    const assignedAnimeIds = new Set();
-    const genreRows = [];
-
-    for (const genreName of targetGenres) {
-      const genreAnimes = genreMap[genreName] || [];
-      
-      console.log(`fetchGenreRows: Genre "${genreName}" has ${genreAnimes.length} anime before dedup`);
-      
-      // Filter out already assigned anime, take up to limit
-      const filteredAnimes = genreAnimes
-        .filter(anime => anime.id && !assignedAnimeIds.has(anime.id))
-        .slice(0, limitPerGenre);
-      
-      console.log(`fetchGenreRows: Genre "${genreName}" has ${filteredAnimes.length} anime after dedup (need ${limitPerGenre})`);
-      
-      // Only include genre if it has 30+ anime after deduplication
-      if (filteredAnimes.length >= limitPerGenre) {
-        filteredAnimes.forEach(anime => assignedAnimeIds.add(anime.id));
-        genreRows.push({
-          genreName,
-          animes: filteredAnimes
-        });
-      }
-    }
-
-    console.log('fetchGenreRows: Final genreRows:', genreRows.map(r => ({ name: r.genreName, count: r.animes.length })));
-    return genreRows;
-  } catch (error) {
-    console.error('Error fetching genre rows:', error);
-    throw error;
-  }
+export async function fetchGenreByName(genreName, { signal } = {}) {
+  return requestDatabase(`/api/genres/${encodeURIComponent(genreName)}`, {
+    signal,
+    notFoundValue: null,
+  });
 }
 
-export default {
-  fetchGenresFromDB,
-  fetchGenreByName,
-  fetchGenreRows
-};
+/** Build complete rows in priority order without repeating an anime across rows. */
+export function buildGenreRows(allGenres, targetGenres, limitPerGenre = 30) {
+  const genreMap = new Map(allGenres.map((genre) => [genre.name, genre.animes || []]));
+  const assignedAnimeIds = new Set();
+  const rows = [];
+
+  for (const genreName of targetGenres) {
+    const selected = [];
+    const selectedIds = new Set();
+
+    for (const anime of genreMap.get(genreName) || []) {
+      if (anime?.id === null || anime?.id === undefined || anime.id === '') continue;
+      const id = String(anime.id);
+      if (assignedAnimeIds.has(id) || selectedIds.has(id)) continue;
+      selected.push(anime);
+      selectedIds.add(id);
+      if (selected.length === limitPerGenre) break;
+    }
+
+    if (selected.length === limitPerGenre) {
+      selectedIds.forEach((id) => assignedAnimeIds.add(id));
+      rows.push({ genreName, animes: selected });
+    }
+  }
+
+  return rows;
+}
+
+export async function fetchGenreRows(targetGenres, limitPerGenre = 30, { signal } = {}) {
+  const allGenres = await fetchGenresFromDB({ signal });
+  return buildGenreRows(allGenres, targetGenres, limitPerGenre);
+}
+
+export default { fetchGenresFromDB, fetchGenreByName, fetchGenreRows };

@@ -1,95 +1,114 @@
-"""Database client for posting anime data to your API."""
-import aiohttp
-from typing import List, Dict, Any, Optional
-from dotenv import load_dotenv
-from logging_config import logger
+"""Async client and synchronization helpers for the external database API."""
+import asyncio
 import os
+from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
-# Load environment variables
-load_dotenv()
+import aiohttp
+
+from logging_config import logger
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8001")
 
 
-class DatabaseClient:
-    """Client for interfacing with your existing API endpoints."""
+class DatabaseAPIError(Exception):
+    """An error response or connection failure from the database API."""
 
-    def __init__(self, api_base_url: str = API_BASE_URL):
-        """
-        Initialize database client.
-        """
-        self.api_base_url = api_base_url
-        self.session = None
+    def __init__(self, status_code: int, detail: Any):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(str(detail))
+
+
+class DatabaseClient:
+    """Own a reusable aiohttp session and all database HTTP requests."""
+
+    def __init__(self, api_base_url: Optional[str] = None, timeout: int = 30):
+        self.api_base_url = (api_base_url or API_BASE_URL).rstrip("/")
+        self.timeout = aiohttp.ClientTimeout(total=timeout)
+        self.session: Optional[aiohttp.ClientSession] = None
 
     async def start_session(self):
-        """Create a new session if one doesn't exist."""
         if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
+            self.session = aiohttp.ClientSession(timeout=self.timeout)
 
     async def close(self):
-        """Close the current session."""
         if self.session and not self.session.closed:
             await self.session.close()
-            self.session = None
+        self.session = None
+
+    async def _request(self, method: str, path: str, **kwargs) -> tuple[int, Any]:
+        await self.start_session()
+        url = f"{self.api_base_url}{path}"
+        try:
+            async with self.session.request(method, url, **kwargs) as response:
+                try:
+                    data = await response.json(content_type=None)
+                except (ValueError, aiohttp.ContentTypeError):
+                    data = {"detail": (await response.text())[:500]}
+                if not 200 <= response.status < 300:
+                    raise DatabaseAPIError(response.status, data)
+                return response.status, data
+        except DatabaseAPIError:
+            raise
+        except (aiohttp.ClientError, asyncio.TimeoutError) as error:
+            logger.error("Database request failed: %s %s: %s", method, url, error)
+            raise DatabaseAPIError(502, "Database API is unavailable.") from error
+
+    async def get_genres(self) -> List[Dict[str, Any]]:
+        _, data = await self._request("GET", "/api/genres")
+        if not isinstance(data, list):
+            raise DatabaseAPIError(502, "Database API returned an invalid genre list.")
+        return data
+
+    async def get_genre(self, genre_name: str) -> Dict[str, Any]:
+        path = f"/api/genres/{quote(genre_name, safe='')}"
+        _, data = await self._request("GET", path)
+        return data
 
     async def post_anime_to_genre(
         self,
         genre_name: str,
-        anime_anime: List[Dict[str, Any]],
-        session: Optional[aiohttp.ClientSession] = None
+        anime_items: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """
-        Post anime data to a specific genre.
-        """
-        if session is None:
-            await self.start_session()
-            session = self.session
+        if not anime_items:
+            return {
+                "status": 200,
+                "data": {"success": True, "message": "No anime to post"},
+                "genre": genre_name,
+                "animes_posted": 0,
+            }
 
-        url = f"{self.api_base_url}/api/genres/{genre_name}/animes"
-
-        if not anime_anime:
-            logger.warning(f"No anime to post for genre: {genre_name}")
-            return {"success": True, "message": "No anime to post"}
-
+        path = f"/api/genres/{quote(genre_name, safe='')}/animes"
         try:
-            async with session.post(
-                url,
-                json={"animes": anime_anime},
-                headers={"Content-Type": "application/json"}
-            ) as response:
-                data = await response.json()
-                logger.info(f"POST {url}: Status {response.status}")
-                return {
-                    "status": response.status,
-                    "data": data,
-                    "genre": genre_name,
-                    "animes_posted": len(anime_anime)
-                }
-
-        except aiohttp.ClientError as e:
-            logger.error(f"Error posting to {url}: {str(e)}")
-            return {"success": False, "error": str(e), "status": 500}
-        except Exception as e:
-            logger.error(f"Unexpected error posting to {url}: {str(e)}")
-            return {"success": False, "error": str(e), "status": 500}
+            status, data = await self._request(
+                "POST", path, json={"animes": anime_items}
+            )
+            return {
+                "status": status,
+                "data": data,
+                "genre": genre_name,
+                "animes_posted": len(anime_items),
+            }
+        except DatabaseAPIError as error:
+            return {
+                "status": error.status_code,
+                "data": error.detail,
+                "error": str(error),
+                "genre": genre_name,
+                "animes_posted": 0,
+            }
 
     async def batch_post_animes(
-        self,
-        endpoint_options: List[Dict[str, List[Any]]]
+        self, endpoint_options: List[Dict[str, List[Any]]]
     ) -> List[Dict[str, Any]]:
-        """
-        Batch post anime data to multiple genres.
-        """
-        await self.start_session()
         results = []
-
         for option in endpoint_options:
-            genre_name = option.get("genre_name", "Uncategorized")
-            anime_anime = option.get("anime_list", [])
-
-            result = await self.post_anime_to_genre(genre_name, anime_anime, self.session)
+            result = await self.post_anime_to_genre(
+                option.get("genre_name", "Uncategorized"),
+                option.get("anime_list", []),
+            )
             results.append(result)
-
         return results
 
 
@@ -135,37 +154,23 @@ async def get_existing_anime_ids() -> set:
     Returns a set of AniList IDs (as strings).
     """
     client = get_db_client()
-    existing_ids = set()
-    
     try:
-        await client.start_session()
-        # Get all genres
-        async with client.session.get(f"{client.api_base_url}/api/genres") as response:
-            if response.status == 200:
-                genres = await response.json()
-                for genre in genres:
-                    animes = genre.get("animes", [])
-                    for anime in animes:
-                        anime_id = anime.get("id")
-                        if anime_id:
-                            existing_ids.add(str(anime_id))
-        logger.info(f"Fetched {len(existing_ids)} existing anime IDs from database")
-    except Exception as e:
-        logger.warning(f"Could not fetch existing anime IDs: {e}")
-    finally:
-        await client.close()
-    
-    return existing_ids
+        genres = await client.get_genres()
+        existing_ids = {
+            str(anime["id"])
+            for genre in genres
+            for anime in genre.get("animes", [])
+            if anime.get("id") is not None
+        }
+        logger.info("Fetched %d existing anime IDs from database", len(existing_ids))
+        return existing_ids
+    except DatabaseAPIError as error:
+        logger.warning("Could not fetch existing anime IDs: %s", error)
+        return set()
 
 
-async def sync_anime_to_db(
-    anime_list: List[Dict[str, Any]],
-    attempt: int = 0
-) -> Dict[str, Any]:
-    """
-    Sync anime list to database by genre.
-    Also attempts to add manga for each outlet.
-    """
+async def sync_anime_to_db(anime_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Group mapped anime by primary genre and post each group sequentially."""
     result = {
         "total_anime": len(anime_list),
         "genres_updated": 0,

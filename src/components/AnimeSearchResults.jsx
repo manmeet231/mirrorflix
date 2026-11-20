@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAniListAnime } from './anilistService';
 import MovieRow from './MovieRow';
-import { mapAnimeToCardFormat } from './animeDataService';
+import { mapAnimeToCardFormat } from './animeMapper';
 import { searchTvShows } from './mediaSearchService';
 import './AnimeSearchResults.css';
 

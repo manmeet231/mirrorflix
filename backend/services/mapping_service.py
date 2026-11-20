@@ -1,10 +1,6 @@
-"""Mapping service for transforming AniList data to database schema."""
-from typing import Dict, Any, List, Optional
-from dotenv import load_dotenv
-from logging_config import logger
-
-# Load environment variables
-load_dotenv()
+"""Mapping service for transforming AniList data to the database schema."""
+from collections import defaultdict
+from typing import Any, Dict, List
 
 
 STATUS_MAPPINGS = {
@@ -125,11 +121,11 @@ def build_genre_endpoint_options(anime_list: List[Dict]) -> List[Dict]:
     # For each unique genre, create a POST option with that genre's anime
     
     # Group by primary genre (first genre in array or genre field itself)
-    from collections import defaultdict
     genre_anime = defaultdict(list)
     
     for anime in anime_list:
-        primary_genre = anime["genres"][0] if anime["genres"] else "Uncategorized"
+        genres = anime.get("genres") or []
+        primary_genre = genres[0] if genres else "Uncategorized"
         genre_anime[primary_genre].append(anime)
     
     # Build endpoint options

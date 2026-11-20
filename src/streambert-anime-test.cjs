@@ -11,7 +11,7 @@
  * 
  * Usage:
  * 1. Install dependencies: npm install electron hls.js
- * 2. Run: node streambert-anime-test.js
+ * 2. Run: node src/streambert-anime-test.cjs
  * 
  * The script will:
  * 1. Search for "Mob Psycho 100" on HiAnime
@@ -937,4 +937,15 @@ async function interactiveMode() {
     console.error('❌ Error in interactive mode:', error.message);
     rl.close();
   }
+}
+
+
+if (require.main === module) {
+  const startInteractive = () => interactiveAnimeTest().catch((error) => {
+    console.error(`Fatal scraper error: ${error.message}`);
+    process.exitCode = 1;
+  });
+
+  if (app?.whenReady) app.whenReady().then(startInteractive);
+  else startInteractive();
 }

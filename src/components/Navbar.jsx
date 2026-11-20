@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Navbar.css';
 
 const Navbar = ({ searchQuery, onSearchChange }) => {
@@ -20,8 +20,9 @@ const Navbar = ({ searchQuery, onSearchChange }) => {
     if (navItem === 'Home') onSearchChange('');
   };
 
-  React.useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

@@ -132,7 +132,7 @@ function categorizeAnime(animeList) {
     }
 
     // Categorize by genres
-    anime.genres.forEach(genre => {
+    (anime.genres || []).forEach(genre => {
       if (!categories['Genres'][genre]) {
         categories['Genres'][genre] = [];
       }

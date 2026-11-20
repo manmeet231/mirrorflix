@@ -4,9 +4,6 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  esbuild: {
-    jsx: 'transform',
-  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),

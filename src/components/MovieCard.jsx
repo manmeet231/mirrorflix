@@ -122,7 +122,7 @@ const MovieCard = ({
           aria-label={`Show details for ${movie.title}`}
         >
           <img
-            src={movie.backdrop || movie.poster}
+            src={movie.backdrop || movie.poster || movie.thumbnail}
             alt={movie.title}
             className="movie-poster"
           />
@@ -179,7 +179,7 @@ const MovieCard = ({
            <button
   type="button"
   className="action-button more-button"
-  onClick={() => onMore?.(movie)}
+  onClick={() => (onMore ? onMore(movie) : openDetails())}
   aria-label="More information"
   title="More information"
 >
@@ -220,7 +220,9 @@ const MovieCard = ({
 
               {seasons != null && (
                 <span className="season-info">
-                  {seasons} {Number(seasons) === 1 ? 'Season' : 'Seasons'}
+                  {/^\d+$/.test(String(seasons))
+                    ? `${seasons} ${Number(seasons) === 1 ? 'Season' : 'Seasons'}`
+                    : seasons}
                 </span>
               )}
 

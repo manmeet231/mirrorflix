@@ -1,5 +1,10 @@
-"""Test script to verify the API is working."""
+"""Live integration script; writes to the configured external database."""
 import asyncio
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from services.anilist_service import fetch_anime_batch
 from services.mapping_service import map_anime_to_db
 from services.db_client import sync_anime_to_db

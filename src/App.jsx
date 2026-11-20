@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Navbar from './components/Navbar';
 import AnimeSearchResults from './components/AnimeSearchResults';
 import HeroSection from './components/HeroSection';
@@ -6,9 +6,19 @@ import CategorizedAnimeSection from './components/CategorizedAnimeSection';
 import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
 import { fetchGenreRows } from './components/dbApiService';
+import { GENRE_ROW_LIMIT, TARGET_GENRES } from './catalogConfig';
+import { featuredShows } from './featuredShows';
 import './App.css';
 
-const App = () => {
+function normalizeMovie(movie) {
+  return {
+    ...movie,
+    synopsis: movie.synopsis || movie.description,
+    genres: Array.isArray(movie.genres) ? movie.genres.join(', ') : movie.genres,
+  };
+}
+
+export default function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [genreRows, setGenreRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,92 +26,35 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const query = searchQuery.trim();
   const isSearching = query.length > 0;
-  
-  // Target genres to display (must have 30+ anime each)
-  const TARGET_GENRES = [
-    'Action',
-    'Drama',
-    'Adventure',
-    'Comedy',
-    'Romance',
-    'Fantasy',
-    'Slice of Life',
-    'Mystery'
-  ];
+  const catalog = useMemo(() => genreRows.flatMap((row) => row.animes), [genreRows]);
 
-  // Featured shows for carousel
-  const featuredShows = [
-    {
-      id: 1,
-      title: "Stranger Things",
-      description: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
-      backgroundImage: "src/assets/strangerthings.jpg"
-    },
-    {
-      id: 2,
-      title: "The Crown",
-      description: "Follow the political rivalries and romance of Queen Elizabeth II's reign and the events that shaped the second half of the 20th century.",
-      backgroundImage: "src/assets/thecrown.jpg"
-    },
-    {
-      id: 3,
-      title: "Bridgerton",
-      description: "In Regency London during the social season, ambitious young women and their mothers seek to capture the attention of eligible bachelors.",
-      backgroundImage: "src/assets/bridgerton.jpg"
-    },
-    {
-      id: 4,
-      title: "The Witcher",
-      description: "Geralt of Rivia, a solitary monster hunter, struggles to find his place in a world where people often prove more wicked than beasts.",
-      backgroundImage: "src/assets/thewitcher.jpg"
-    },
-    {
-      id: 5,
-      title: "Money Heist",
-      description: "A group of robbers carry out a sophisticated heist on the Royal Mint of Spain, under the leadership of the mysterious Professor.",
-      backgroundImage: "src/assets/moneyheist.jpg"
-    }
-  ];
-  
-
-
-  // Fetch anime data on component mount
   useEffect(() => {
-    const fetchAnimeData = async () => {
+    const controller = new AbortController();
+
+    async function loadCatalog() {
       try {
         setLoading(true);
         setError(null);
-
-        // Fetch genre rows from database API (30 anime per genre, deduplicated)
-        const rows = await fetchGenreRows(TARGET_GENRES, 30);
-        
-        console.log('App.jsx: Received genreRows:', rows.map(r => ({ name: r.genreName, count: r.animes.length })));
-
-        setGenreRows(rows);
-      } catch (err) {
-        console.error('Error fetching anime data:', err);
+        const rows = await fetchGenreRows(TARGET_GENRES, GENRE_ROW_LIMIT, {
+          signal: controller.signal,
+        });
+        if (!controller.signal.aborted) setGenreRows(rows);
+      } catch (requestError) {
+        if (controller.signal.aborted) return;
+        console.error('Error fetching anime data:', requestError);
         setError('Failed to load anime data. Please try again later.');
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
-    };
+    }
 
-    fetchAnimeData();
+    loadCatalog();
+    return () => controller.abort();
   }, []);
-  
+
   useEffect(() => {
     if (isSearching) window.scrollTo(0, 0);
   }, [isSearching]);
-
-  // Handle movie selection
-  const handleSelectMovie = (movie) => {
-    setSelectedMovie(movie);
-  };
-
-  // Handle movie modal close
-  const handleCloseModal = () => {
-    setSelectedMovie(null);
-  };
 
   return (
     <div className="app">
@@ -111,34 +64,31 @@ const App = () => {
           <AnimeSearchResults
             key={query}
             query={query}
-            catalog={genreRows.flatMap(r => r.animes)}
-            onSelectMovie={handleSelectMovie}
+            catalog={catalog}
+            onSelectMovie={(movie) => setSelectedMovie(normalizeMovie(movie))}
           />
         ) : (
           <>
             <HeroSection featuredShows={featuredShows} />
-            {/* Dynamic categorized anime section from database */}
             <CategorizedAnimeSection
               title="Browse Anime"
               genreRows={genreRows}
-              onSelectMovie={handleSelectMovie}
+              onSelectMovie={(movie) => setSelectedMovie(normalizeMovie(movie))}
               loading={loading}
               error={error}
             />
           </>
         )}
       </main>
-      
-      {/* Movie Modal */}
-      <MovieModal 
-        movie={selectedMovie} 
+
+      <MovieModal
+        movie={selectedMovie}
         showType={selectedMovie?.mediaType || 'series'}
-        isOpen={Boolean(selectedMovie)} 
-        onClose={handleCloseModal} 
+        isOpen={Boolean(selectedMovie)}
+        onClose={() => setSelectedMovie(null)}
       />
-      
       <Footer />
     </div>
   );
-};
-export default App;
+}
+

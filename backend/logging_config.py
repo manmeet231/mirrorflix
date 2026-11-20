@@ -3,10 +3,6 @@ import logging
 import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 
 def setup_logging(log_level="INFO", log_file="logs/sync.log") -> logging.Logger:
@@ -31,17 +27,16 @@ def setup_logging(log_level="INFO", log_file="logs/sync.log") -> logging.Logger:
     logger = logging.getLogger("mirrorflix_backend")
     logger.setLevel(level)
     
-    # Avoid adding duplicate handlers
+    # Avoid duplicate handlers while still honoring a changed log level.
     if logger.handlers:
+        for handler in logger.handlers:
+            handler.setLevel(level)
         return logger
-    
-    # Create formatters
+
     detailed_formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    simple_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
@@ -62,5 +57,5 @@ def setup_logging(log_level="INFO", log_file="logs/sync.log") -> logging.Logger:
     return logger
 
 
-# Create a module-level logger
-logger = setup_logging()
+# Modules share this logger; main.py configures its handlers once.
+logger = logging.getLogger("mirrorflix_backend")

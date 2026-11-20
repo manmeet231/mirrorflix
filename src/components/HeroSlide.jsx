@@ -1,4 +1,5 @@
 import React from 'react';
+import playButton from '../assets/playbutton.svg';
 import './HeroSlide.css';
 
 const HeroSlide = ({ show, isActive }) => {
@@ -23,7 +24,7 @@ const HeroSlide = ({ show, isActive }) => {
         <div className="hero-buttons">
           <button className="play-btn">
             <img
-              src="/src/assets/playbutton.svg"
+              src={playButton}
               alt="Play"
               className="play-icon"
             />

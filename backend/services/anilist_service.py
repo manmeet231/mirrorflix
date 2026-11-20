@@ -1,22 +1,20 @@
-"""AniList service for fetching anime data via GraphQL API."""
-import aiohttp
+﻿"""AniList service for fetching anime data via GraphQL API."""
 import asyncio
-import time
-from typing import List, Dict, Any, Optional
-from dotenv import load_dotenv
-from logging_config import logger
 import os
+import time
+from typing import Any, Dict, List, Optional
 
-# Load environment variables
-load_dotenv()
+import aiohttp
+
+from logging_config import logger
 
 ANILIST_API = os.getenv("ANILIST_API", "https://graphql.anilist.co")
 
 ANILIST_QUERY = """
-    query GetAnimeBatch($page: Int, $perPage: Int, $sort: [MediaSort]) {
+    query GetAnimeBatch($page: Int, $perPage: Int, $sort: [MediaSort], $status: MediaStatus) {
         Page(page: $page, perPage: $perPage) {
             pageInfo { total currentPage lastPage hasNextPage }
-            media {
+            media(type: ANIME, status: $status, sort: $sort) {
                 id
                 idMal
                 title { romaji english native }
@@ -104,55 +102,24 @@ class AniListService:
                 logger.warning(f"Attempt {attempt + 1} failed: {e}, retrying...")
                 await asyncio.sleep(2 ** attempt)
 
+        raise RuntimeError(f"AniList request failed after {self.max_retries} attempts")
+
     async def fetch_anime_batch(
         self,
         page: int = 1,
         per_page: int = 50,
-        sort: List[str] = None,
-        status_filter: Optional[str] = None
-    ) -> Dict:
-        sort = sort or ["POPULARITY_DESC"]
-        
-        # Build media filter with status and sort in same parentheses
-        if status_filter:
-            media_filter = f"media(status: {status_filter}, sort: $sort)"
-        else:
-            media_filter = "media(sort: $sort)"
-
-        graphql_query = f"""
-        query GetAnimeBatch($page: Int, $perPage: Int, $sort: [MediaSort]) {{
-            Page(page: $page, perPage: $perPage) {{
-                pageInfo {{ total currentPage lastPage hasNextPage }}
-                {media_filter} {{
-                    id
-                    idMal
-                    title {{ romaji english native }}
-                    description
-                    coverImage {{ extraLarge large medium color }}
-                    bannerImage
-                    genres
-                    season
-                    seasonYear
-                    format
-                    status
-                    episodes
-                    duration
-                    averageScore
-                    popularity
-                    isAdult
-                    synonyms
-                    nextAiringEpisode {{ episode airingAt }}
-                    startDate {{ year month day }}
-                    endDate {{ year month day }}
-                }}
-            }}
-        }}
-        """
-
-        variables = {"page": page, "perPage": per_page, "sort": sort}
+        sort: Optional[List[str]] = None,
+        status_filter: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        variables = {
+            "page": page,
+            "perPage": per_page,
+            "sort": sort or ["POPULARITY_DESC"],
+            "status": status_filter,
+        }
 
         async with aiohttp.ClientSession() as session:
-            return await self._make_request(graphql_query, variables, session)
+            return await self._make_request(ANILIST_QUERY, variables, session)
 
 
 async def fetch_anime_batch(
@@ -170,70 +137,51 @@ async def fetch_anime_status_paginated(
     status: str = "RELEASING",
     per_page: int = 50,
     max_pages: int = 100,
-    seen_ids: set = None,
-    target_total: int = None
+    seen_ids: Optional[set] = None,
+    target_total: Optional[int] = None,
 ) -> tuple[List[Dict], bool]:
-    """
-    Fetch anime with pagination by status.
-    
-    Args:
-        status: AniList status filter
-        per_page: Anime per page (max 50)
-        max_pages: Max pages to fetch (max 100)
-        seen_ids: Set of AniList IDs to skip (for deduplication)
-        target_total: Stop when this many unique anime collected
-        
-    Returns:
-        Tuple of (anime_list, reached_target)
-    """
+    """Fetch new anime by status, deduplicating IDs as strings across statuses."""
     all_anime = []
-    page = 1
-    seen_ids = seen_ids or set()
+    seen_ids = seen_ids if seen_ids is not None else set()
     reached_target = False
-
-    logger.info(f"Fetching anime with status: {status} (seen_ids: {len(seen_ids)}, target: {target_total})")
-
     service = AniListService()
-    try:
-        while page <= max_pages:
-            data = await service.fetch_anime_batch(
-                page=page,
-                per_page=per_page,
-                status_filter=status
-            )
 
-            media_list = data.get("Page", {}).get("media", [])
-            
-            # Deduplicate against seen_ids
-            new_anime = []
-            for anime in media_list:
-                anime_id = anime.get("id")
-                if anime_id and anime_id not in seen_ids:
-                    seen_ids.add(anime_id)
-                    new_anime.append(anime)
-                elif anime_id:
-                    logger.debug(f"Skipping duplicate anime ID: {anime_id}")
+    logger.info(
+        "Fetching status %s (seen_ids=%d, target=%s)",
+        status, len(seen_ids), target_total,
+    )
 
-            all_anime.extend(new_anime)
-            logger.info(f"Fetched page {page}: {len(media_list)} total, {len(new_anime)} new (cumulative: {len(all_anime)})")
+    for page in range(1, max_pages + 1):
+        data = await service.fetch_anime_batch(
+            page=page, per_page=per_page, status_filter=status
+        )
+        page_data = data.get("Page", {})
+        media_list = page_data.get("media", [])
+        new_anime = []
 
-            page_info = data.get("Page", {}).get("pageInfo", {})
-            total_pages = page_info.get("lastPage", 0)
+        for anime in media_list:
+            raw_id = anime.get("id")
+            if raw_id is None:
+                continue
+            anime_id = str(raw_id)
+            if anime_id in seen_ids:
+                logger.debug("Skipping duplicate anime ID: %s", anime_id)
+                continue
 
-            # Check if target reached
-            if target_total and len(all_anime) >= target_total:
-                all_anime = all_anime[:target_total]
+            seen_ids.add(anime_id)
+            new_anime.append(anime)
+            if target_total is not None and len(all_anime) + len(new_anime) >= target_total:
                 reached_target = True
-                logger.info(f"Target total ({target_total}) reached for status {status}")
                 break
 
-            if not page_info.get("hasNextPage"):
-                break
+        all_anime.extend(new_anime)
+        logger.info(
+            "Fetched page %d: %d total, %d new (cumulative: %d)",
+            page, len(media_list), len(new_anime), len(all_anime),
+        )
+        if reached_target or not page_data.get("pageInfo", {}).get("hasNextPage"):
+            break
+        await asyncio.sleep(3.5)
 
-            page += 1
-            await asyncio.sleep(3.5)  # 3.5s delay to respect AniList's 3s minimum (20 req/min)
-    finally:
-        pass
-
-    logger.info(f"Total new anime fetched for {status}: {len(all_anime)}")
+    logger.info("Total new anime fetched for %s: %d", status, len(all_anime))
     return all_anime, reached_target

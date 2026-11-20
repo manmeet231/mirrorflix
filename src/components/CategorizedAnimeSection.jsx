@@ -1,58 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import MovieRow from './MovieRow';
+import { SKELETON_CARD_COUNT, TARGET_GENRES } from '../catalogConfig';
+import './CategorizedAnimeSection.css';
 import './ContentSection.css';
-
-// Apply z-index fix dynamically
-const applyZIndexFix = () => {
-  const styleId = 'injected-z-index-fix';
-  let styleElement = document.getElementById(styleId);
-
-  if (!styleElement) {
-    styleElement = document.createElement('style');
-    styleElement.id = styleId;
-    document.head.appendChild(styleElement);
-  }
-
-  styleElement.textContent = `
-    .category-section {
-      position: relative !important;
-      z-index: 1 !important;
-      isolation: auto !important;
-      transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-      overflow: visible !important;
-    }
-
-    .category-section:hover,
-    .category-section:has(.movie-card:hover),
-    .category-section:has(.movie-card.expanded) {
-      z-index: 9999 !important;
-      transform: translateY(-10px) !important;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8) !important;
-    }
-
-    .category-section .movie-row-posters {
-      overflow: visible !important;
-      z-index: 1 !important;
-    }
-
-    .category-section .scroll-btn {
-      z-index: 10000 !important;
-    }
-  `;
-
-  const sections = document.querySelectorAll('.category-section');
-  const data = {
-    count: sections.length,
-    applied: true,
-    currentStyles: Array.from(sections).map(s => ({
-      title: s.querySelector('h2')?.textContent,
-      zIndex: window.getComputedStyle(s).zIndex,
-      position: window.getComputedStyle(s).position
-    }))
-  };
-
-  console.log('Z-index fix applied:', data);
-};
 
 // Skeleton loader for a single movie card
 const MovieCardSkeleton = () => (
@@ -92,8 +41,8 @@ const MovieRowSkeleton = () => (
         </svg>
       </button>
       <div className="movie-row-posters skeleton-row">
-        {Array.from({ length: 30 }).map((_, i) => (
-          <MovieCardSkeleton key={i} />
+        {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+          <MovieCardSkeleton key={index} />
         ))}
       </div>
       <button className="scroll-btn scroll-right" disabled aria-hidden="true">
@@ -105,80 +54,46 @@ const MovieRowSkeleton = () => (
   </div>
 );
 
-const CategorizedAnimeSection = ({ 
-  title = "Browse Anime", 
+export default function CategorizedAnimeSection({
+  title = 'Browse Anime',
   genreRows = [],
   onSelectMovie,
   loading = false,
-  error = null
-}) => {
-  const [displayRows, setDisplayRows] = useState([]);
-  
-  // Apply z-index fix when loading completes
-  useEffect(() => {
-    if (!loading && !error) {
-      const timer = setTimeout(() => {
-        applyZIndexFix();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, error]); // Removed displayRows from deps
+  error = null,
+}) {
+  const displayRows = loading
+    ? TARGET_GENRES.map((genreName) => ({ genreName, animes: [], isSkeleton: true }))
+    : genreRows;
 
-  // Update display rows when genreRows or loading changes
-  useEffect(() => {
-    if (loading) {
-      const targetGenres = [
-        'Action',
-        'Drama',
-        'Adventure',
-        'Comedy',
-        'Romance',
-        'Fantasy',
-        'Slice of Life',
-        'Mystery'
-      ];
-      const newRows = targetGenres.map(name => ({ genreName: name, animes: [], isSkeleton: true }));
-      setDisplayRows(prev => {
-        // Only update if different to prevent unnecessary renders
-        if (prev.length !== newRows.length) return newRows;
-        return prev.every((p, i) => p.genreName === newRows[i].genreName && p.isSkeleton === newRows[i].isSkeleton) ? prev : newRows;
-      });
-    } else {
-      const newRows = genreRows.map(row => ({ ...row, isSkeleton: false }));
-      setDisplayRows(prev => {
-        if (prev.length !== newRows.length) return newRows;
-        return prev.every((p, i) => p.genreName === newRows[i].genreName && p.isSkeleton === newRows[i].isSkeleton) ? prev : newRows;
-      });
-    }
-  }, [genreRows, loading]);
-
-  const renderCategoryRows = () => {
-    if (error) {
-      return <div className="error-state"><p className="error-message">{error}</p></div>;
-    }
-    if (displayRows.length === 0) {
-      return <div className="empty-state"><p>No anime data available for the selected genres.</p></div>;
-    }
-    return (
+  let content;
+  if (error) {
+    content = <div className="error-state"><p className="error-message">{error}</p></div>;
+  } else if (displayRows.length === 0) {
+    content = <div className="empty-state"><p>No anime data available for the selected genres.</p></div>;
+  } else {
+    content = (
       <div className="all-categories">
         {displayRows.map((row) => (
-          <div key={row.genreName} className="category-section">
+          <section key={row.genreName} className="category-section" aria-label={row.genreName}>
             <h2 className="category-title">{row.genreName}</h2>
-            {row.isSkeleton ? <MovieRowSkeleton /> : <MovieRow movies={row.animes} onSelectMovie={onSelectMovie} />}
-          </div>
+            {row.isSkeleton ? (
+              <MovieRowSkeleton />
+            ) : (
+              <MovieRow movies={row.animes} title={row.genreName} onSelectMovie={onSelectMovie} />
+            )}
+          </section>
         ))}
       </div>
     );
-  };
+  }
 
   return (
     <div className="content-section">
-      <div className="section anime-section">
-        <h2 className="section-title">Browse Anime</h2>
-        {renderCategoryRows()}
+      <div className="section anime-section" aria-busy={loading}>
+        <h2 className="section-title">{title}</h2>
+        {content}
       </div>
     </div>
   );
-};
+}
 
-export default CategorizedAnimeSection;

@@ -8,3 +8,7 @@ __pycache__/
 .pytest_cache/
 backend/logs/
 
+
+# Local backend environments and manual database backups
+.venv/
+backend/catalog-before-import.sql

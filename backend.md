@@ -2,7 +2,7 @@
 
 ## Role and architecture
 
-The backend is a FastAPI administrative service for reading/writing an **external** genre database and synchronizing anime from AniList. The database implementation itself is not in this repository. By default it is expected at `http://127.0.0.1:8001`; this FastAPI service listens on port `8002`.
+The backend is a FastAPI administrative service for reading/writing an **external** genre database and synchronizing anime from AniList. The optional persistent MySQL catalog implementation is documented in [backend/CATALOG_SETUP.md](backend/CATALOG_SETUP.md); it is a separate app from this sync service. By default it is expected at `http://127.0.0.1:8001`; this FastAPI service listens on port `8002`.
 
 ```text
 POST /api/fetch-anime
@@ -163,3 +163,5 @@ There is no authentication or authorization. Anyone who can reach the service ca
 
 Check `logs/sync.log` for upstream failures. For `502`, verify `API_BASE_URL` and the external database. For `429`, wait for the existing request; after a process crash/restart the memory lock resets naturally. AniList throttling can make large syncs take a long time by design.
 
+
+The sync HTTP client forwards `CATALOG_WRITE_TOKEN` when set. Keep both services on loopback; downstream authentication does not protect the existing unauthenticated sync endpoints.

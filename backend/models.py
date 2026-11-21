@@ -13,7 +13,14 @@ from sqlalchemy import (
     CheckConstraint
 )
 from sqlalchemy.sql import func
-from backend.database import Base
+try:
+    # Project-root launch: uvicorn backend.main:app
+    from backend.database import Base
+except ModuleNotFoundError as exc:
+    if exc.name != "backend":
+        raise
+    # Existing service launch: from backend/, uvicorn main:app
+    from database import Base
 
 
 # 1. Categories table
@@ -99,7 +106,7 @@ class WatchHistory(Base):
     progress_seconds = Column(Integer, default=0)
 
 
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
 from sqlalchemy.ext.mutable import MutableList
 
 
@@ -109,4 +116,4 @@ class Genre(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, nullable=False)
-    animes = Column(MutableList.as_mutable(JSONB), nullable=False, server_default="[]")
+    animes = Column(MutableList.as_mutable(JSON), nullable=False, default=list)

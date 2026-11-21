@@ -5,12 +5,20 @@ import os
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from sqlalchemy import case, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models import Category, FeaturedMovie, Genre, Movie
+try:
+    # Project-root launch: uvicorn backend.main:app
+    from backend.database import get_db
+    from backend.models import Category, FeaturedMovie, Genre, Movie
+except ModuleNotFoundError as exc:
+    if exc.name != "backend":
+        raise
+    # Existing service launch: from backend/, uvicorn main:app
+    from database import get_db
+    from models import Category, FeaturedMovie, Genre, Movie
 
 
 app = FastAPI(title="MirrorFlix API", version="1.0.0")
@@ -73,6 +81,11 @@ def _serialize_movie(movie: Movie, category_name: str | None = None) -> dict[str
     }
 
 
+def _descending_nulls_last(column):
+    # CASE-based ordering works in both MySQL and PostgreSQL.
+    return case((column.is_(None), 1), else_=0), column.desc()
+
+
 def _flatten_anime(genres: list[Genre]) -> list[dict[str, Any]]:
     unique: dict[str, dict[str, Any]] = {}
     for genre in genres:
@@ -122,7 +135,7 @@ def get_featured_movies(
         .join(FeaturedMovie, Movie.id == FeaturedMovie.movie_id)
         .outerjoin(Category, Movie.category_id == Category.id)
         .filter(FeaturedMovie.is_active.is_(True))
-        .order_by(FeaturedMovie.featured_score.desc().nullslast(), FeaturedMovie.id.asc())
+        .order_by(*_descending_nulls_last(FeaturedMovie.featured_score), FeaturedMovie.id.asc())
         .limit(limit)
         .all()
     )
@@ -148,9 +161,9 @@ def get_movies(
         query = query.filter(Movie.title.ilike(f"%{search.strip()}%"))
 
     ordering = {
-        "recent": (Movie.created_at.desc().nullslast(), Movie.id.desc()),
-        "popular": (Movie.total_views.desc().nullslast(), Movie.id.desc()),
-        "rating": (Movie.average_rating.desc().nullslast(), Movie.id.desc()),
+        "recent": (*_descending_nulls_last(Movie.created_at), Movie.id.desc()),
+        "popular": (*_descending_nulls_last(Movie.total_views), Movie.id.desc()),
+        "rating": (*_descending_nulls_last(Movie.average_rating), Movie.id.desc()),
         "title": (Movie.title.asc(), Movie.id.asc()),
     }[sort]
     total = query.count()

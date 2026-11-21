@@ -5,7 +5,7 @@ const scraper = require('../src/streambert-anime-test.cjs');
 const { createStreambertServer, selectShow } = require('../server/streambert-server.cjs');
 const { selectServerEmbed } = require('../src/streambert-anime-test.cjs');
 
-async function startServer(t, overrides = {}) {
+async function startServer(t, overrides = {}, aniwaveOverrides = {}) {
   const client = {
     hianimeSearch: async () => [
       { id: 'mob-psycho-100-926', title: 'Mob Psycho 100', jname: 'Mob Psycho 100' },
@@ -27,7 +27,25 @@ async function startServer(t, overrides = {}) {
     handlePlaybackProxy: scraper.handlePlaybackProxy,
     ...overrides,
   };
-  const server = createStreambertServer(client);
+  const aniwaveClient = {
+    scrapeAniwaveEpisode: async (animeId, episode, { mode }) => ({
+      animeId,
+      episode: String(episode),
+      mode,
+      server: { id: '12', name: 'MyCloud', type: mode === 'sub' ? 'ssub' : 'dub' },
+      video: {
+        url: 'https://media.example/master.m3u8',
+        type: 'hls',
+        referer: 'https://embed.example/',
+      },
+      subtitles: [
+        { url: 'https://media.example/english.srt', language: 'en', label: 'English', default: true },
+        { url: 'https://media.example/spanish.vtt', language: 'es', label: 'Spanish', default: false },
+      ],
+    }),
+    ...aniwaveOverrides,
+  };
+  const server = createStreambertServer(client, undefined, aniwaveClient);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   return `http://127.0.0.1:${server.address().port}/api/streambert`;
@@ -85,6 +103,33 @@ test('stream endpoint returns same-origin proxied video and subtitle sources', a
   assert.equal(payload.subtitles.length, 1);
   assert.match(payload.subtitles[0].src, /^\/api\/streambert\/proxy/);
   assert.equal(payload.subtitles[0].default, true);
+});
+
+test('Aniwave endpoint returns proxied video and every subtitle track', async (t) => {
+  const base = await startServer(t);
+  const params = new URLSearchParams({ animeId: 'one-piece-81553', episode: '1', mode: 'sub' });
+  const response = await fetch(`${base}/aniwave/stream?${params}`);
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.provider, 'aniwave');
+  assert.equal(payload.server.name, 'MyCloud');
+  assert.match(decodeURIComponent(payload.videoUrl), /master\.m3u8/);
+  assert.equal(payload.subtitles.length, 2);
+  assert.deepEqual(payload.subtitles.map((track) => track.language), ['en', 'es']);
+  assert.match(decodeURIComponent(payload.subtitles[0].src), /english\.srt/);
+  assert.equal(payload.subtitles[0].default, true);
+  assert.equal(payload.subtitles[1].default, false);
+});
+
+test('Aniwave endpoint validates required parameters and mode', async (t) => {
+  const base = await startServer(t);
+  const missing = await fetch(`${base}/aniwave/stream?episode=1`);
+  const invalid = await fetch(`${base}/aniwave/stream?animeId=one-piece-81553&episode=1&mode=raw`);
+
+  assert.equal(missing.status, 400);
+  assert.equal(invalid.status, 400);
+  assert.match((await invalid.json()).error, /sub or dub/);
 });
 
 test('API validates input and reports missing search results', async (t) => {

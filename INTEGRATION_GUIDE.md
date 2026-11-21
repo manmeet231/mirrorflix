@@ -25,6 +25,33 @@ This depends on third-party site markup and network access. Electron is optional
 
 `src/components/animeDataService.js` retains the older eager-enrichment compatibility workflow. Active modals call `fetchAnimeEpisodes` and `fetchEpisodeStream` on demand instead of resolving streams for every visible card.
 
+## Aniwave episode scraper
+
+`src/aniwave-scraper.cjs` resolves an HLS/MP4 source and all available caption tracks from a full Aniwave slug and episode number. It prefers soft-sub servers for subtitle extraction, falls back across compatible servers, and filters thumbnail tracks. It requires authorized use of Aniwave's episode and source endpoints; it does not bypass CAPTCHA, DRM, or third-party host protections.
+
+Run it as a CLI (JSON is written to stdout):
+
+```powershell
+node src/aniwave-scraper.cjs one-piece-81553 1
+node src/aniwave-scraper.cjs one-piece-81553 1 --mode dub
+```
+
+The local Streambert service also exposes:
+
+```text
+GET /api/streambert/aniwave/stream?animeId=one-piece-81553&episode=1&mode=sub
+```
+
+That endpoint returns the player's normal tokenized same-origin `videoUrl` and `subtitles` fields. SRT captions are converted to WebVTT by the playback proxy. Source URLs and upstream availability can change; offline fixture tests do not guarantee live playback.
+
+Optional mutual-TLS credentials are loaded only for Aniwave requests, never sent to media hosts or committed to the repository:
+
+- `ANIWAVE_TLS_CERT_PATH` and `ANIWAVE_TLS_KEY_PATH` must be set together.
+- `ANIWAVE_TLS_CA_PATH` optionally identifies a custom CA file.
+- `ANIWAVE_TLS_KEY_PASSWORD` optionally decrypts the private key.
+
+Keep credential files outside the repository. The CLI reads the project `.env`; the Streambert service already loads it at startup.
+
 ## Verification
 
 ```bash

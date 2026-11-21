@@ -429,6 +429,17 @@ function rewritePlaylist(text, playlistUrl, token = _serverToken, prefix = "/pro
     .join("\n");
 }
 
+function convertSrtToVtt(text) {
+  const input = String(text).replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").trim();
+  if (!input || /^WEBVTT(?:\s|\n)/i.test(input)) return `${input}\n`;
+  const vtt = input.split("\n").map((line) =>
+    /^\s*\d{1,2}:\d{2}:\d{2},\d{3}\s+-->\s*\d{1,2}:\d{2}:\d{2},\d{3}/.test(line)
+      ? line.replace(/,/g, ".")
+      : line
+  ).join("\n");
+  return `WEBVTT\n\n${vtt}\n`;
+}
+
 function buildPlayerHtml(videoUrl, startTime, subtitleUrl, nonce) {
   const track = subtitleUrl
     ? `<track kind="subtitles" src="${escapeHtmlAttr(proxied(subtitleUrl))}" srclang="en" label="Subtitles" default>`
@@ -550,6 +561,41 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
             "X-Content-Type-Options": "nosniff",
           });
           res.end(out);
+        });
+        proxyRes.on("error", () => {
+          if (!res.headersSent) res.writeHead(502);
+          res.end();
+        });
+        return;
+      }
+
+      const isSrt = /\.srt(?:[?&#]|$)/i.test(targetUrl.pathname + targetUrl.search)
+        || /(?:application\/x-subrip|text\/srt)/i.test(contentType);
+      if (isSrt && status === 200) {
+        const chunks = [];
+        let size = 0;
+        proxyRes.on("data", (chunk) => {
+          size += chunk.length;
+          if (size > MAX_TEXT_BYTES) {
+            proxyReq.destroy();
+            return;
+          }
+          chunks.push(chunk);
+        });
+        proxyRes.on("end", () => {
+          if (size > MAX_TEXT_BYTES) {
+            res.writeHead(502);
+            res.end();
+            return;
+          }
+          const output = convertSrtToVtt(Buffer.concat(chunks).toString("utf8"));
+          res.writeHead(200, {
+            "Content-Type": "text/vtt; charset=utf-8",
+            "Content-Length": Buffer.byteLength(output),
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+          });
+          res.end(output);
         });
         proxyRes.on("error", () => {
           if (!res.headersSent) res.writeHead(502);
@@ -708,16 +754,20 @@ function createPlaybackSession(stream) {
     lastUsed: Date.now(),
   });
 
+  const subtitles = Array.isArray(stream.subtitles)
+    ? stream.subtitles
+    : stream.subtitle
+      ? [{ src: stream.subtitle, language: "en", label: "English", default: true }]
+      : [];
+
   return {
     videoUrl: proxied(stream.masterUrl, token, prefix),
-    subtitles: stream.subtitle
-      ? [{
-          src: proxied(stream.subtitle, token, prefix),
-          language: "en",
-          label: "English",
-          default: true,
-        }]
-      : [],
+    subtitles: subtitles.map((track, index) => ({
+      src: proxied(track.url || track.src, token, prefix),
+      language: track.language || "und",
+      label: track.label || `Subtitles ${index + 1}`,
+      default: Boolean(track.default),
+    })),
     resolution: stream.resolution,
     malId: stream.malId,
   };
@@ -863,6 +913,7 @@ module.exports = {
   hianimeEpisodes,
   hianimeStream,
   selectServerEmbed,
+  convertSrtToVtt,
   createPlaybackSession,
   handlePlaybackProxy,
   getPlayerServer,

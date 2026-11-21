@@ -8,6 +8,7 @@ try {
 }
 
 const scraper = require("../src/streambert-anime-test.cjs");
+const aniwave = require("../src/aniwave-scraper.cjs");
 const { createTitleMetadata } = require("./titleMetadata.cjs");
 
 const {
@@ -46,6 +47,7 @@ function getRequiredParam(url, name) {
 function createStreambertServer(
   scraperClient = scraper,
   titleMetadata = createTitleMetadata(),
+  aniwaveClient = aniwave,
 ) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://127.0.0.1");
@@ -135,6 +137,32 @@ function createStreambertServer(
             number: episode.number,
             title: `Episode ${episode.number}`,
           })),
+        });
+        return;
+      }
+
+      if (url.pathname === `${API_PREFIX}/aniwave/stream`) {
+        const animeId = getRequiredParam(url, "animeId");
+        const episode = getRequiredParam(url, "episode");
+        const mode = url.searchParams.get("mode") || "sub";
+        if (!["sub", "dub"].includes(mode)) {
+          sendJson(res, 400, { error: "mode must be sub or dub." });
+          return;
+        }
+        const source = await aniwaveClient.scrapeAniwaveEpisode(animeId, episode, { mode });
+        const session = scraperClient.createPlaybackSession({
+          masterUrl: source.video.url,
+          referer: source.video.referer,
+          subtitles: source.subtitles,
+          resolution: "auto",
+        });
+        sendJson(res, 200, {
+          ...session,
+          provider: "aniwave",
+          animeId: source.animeId,
+          episode: source.episode,
+          mode: source.mode,
+          server: source.server,
         });
         return;
       }

@@ -1,5 +1,4 @@
 import React from 'react';
-import playButton from '../assets/playbutton.svg';
 import './HeroSlide.css';
 import playButton from '../assets/playbutton.svg';
 

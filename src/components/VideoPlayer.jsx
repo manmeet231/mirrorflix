@@ -36,7 +36,6 @@ export default function VideoPlayer({ episode, movie, onClose }) {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [retryCount, setRetryCount] = useState(0);
   const isDemo = Boolean(episode.demo);
 
   const reveal = useCallback(() => {
@@ -57,43 +56,11 @@ export default function VideoPlayer({ episode, movie, onClose }) {
     const fullscreenSurface = surface.current;
     const opener = document.activeElement;
     const oldOverflow = document.body.style.overflow;
-    let hls = null;
-    let cancelled = false;
     document.body.style.overflow = 'hidden';
-    setStatus('loading');
-    setError('');
-    media.pause();
-
-    async function attachSource() {
-      const isHlsSource = /\.m3u8/i.test(episode.videoUrl);
-      const hasNativeHls = media.canPlayType('application/vnd.apple.mpegurl');
-      if (isHlsSource && !hasNativeHls) {
-        const { default: Hls } = await import('hls.js');
-        if (cancelled) return;
-        if (Hls.isSupported()) {
-          media.removeAttribute('src');
-          hls = new Hls({ autoStartLoad: true });
-          hls.on(Hls.Events.ERROR, (_, data) => {
-            if (!data.fatal) return;
-            setStatus('error');
-            setError('The episode stream could not be loaded. Check the connection or try again.');
-            setControlsVisible(true);
-          });
-          hls.attachMedia(media);
-          hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(episode.videoUrl));
-          return;
-        }
-      }
-      if (!cancelled) media.src = episode.videoUrl;
-    }
-
+    // Restore the source after React StrictMode's development cleanup cycle.
+    media.src = episode.videoUrl;
     playerDialog.showModal();
     playerDialog.focus();
-    attachSource().catch(() => {
-      if (cancelled) return;
-      setStatus('error');
-      setError('The video player could not be initialized. Please try again.');
-    });
     const handleFullscreen = () => {
       const active = document.fullscreenElement === fullscreenSurface;
       setFullscreen(active);
@@ -102,10 +69,8 @@ export default function VideoPlayer({ episode, movie, onClose }) {
     };
     document.addEventListener('fullscreenchange', handleFullscreen);
     return () => {
-      cancelled = true;
       clearTimeout(hideTimer.current);
       media.pause();
-      hls?.destroy();
       media.removeAttribute('src');
       media.load();
       if (document.fullscreenElement === fullscreenSurface) document.exitFullscreen().catch(() => {});
@@ -114,7 +79,7 @@ export default function VideoPlayer({ episode, movie, onClose }) {
       document.body.style.overflow = oldOverflow;
       if (opener?.isConnected) opener.focus();
     };
-  }, [reveal, episode.videoUrl, retryCount]);
+  }, [reveal, episode.videoUrl]);
 
   async function startPlayback() {
     try {
@@ -179,7 +144,7 @@ export default function VideoPlayer({ episode, movie, onClose }) {
       video.current.muted = false;
     }
   }
-  function retry() { setRetryCount((count) => count + 1); }
+  function retry() { setError(''); setStatus('loading'); video.current.load(); startPlayback(); }
 
   return (
     <dialog ref={dialog} tabIndex={-1} className={`vp-dialog ${controlsVisible || paused || status === 'error' ? '' : 'vp-idle'}`}
@@ -191,7 +156,7 @@ export default function VideoPlayer({ episode, movie, onClose }) {
         else if (Date.now() - fullscreenExitedAt.current > 350) close();
       }}>
       <div ref={surface} className="vp-surface">
-      <video ref={video} playsInline preload="metadata"
+      <video ref={video} src={episode.videoUrl} playsInline preload="metadata"
         poster={isDemo ? undefined : (episode.thumbnail || movie.poster)}
         aria-label={isDemo ? episode.demo.title : `${movie.title}: ${episode.title}`}
         onClick={togglePlayback}

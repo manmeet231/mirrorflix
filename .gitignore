@@ -3,7 +3,6 @@ dist/
 .env
 .env.*
 !.env.example
-<<<<<<< HEAD
 .venv/
 venv/
 backend/venv/
@@ -11,9 +10,3 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .coverage
-=======
-__pycache__/
-*.py[cod]
-.pytest_cache/
-backend/logs/
->>>>>>> fa6fa660e2d653b219e6a06e304453857ed1f23d

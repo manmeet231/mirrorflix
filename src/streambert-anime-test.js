@@ -11,7 +11,7 @@
  * 
  * Usage:
  * 1. Install dependencies: npm install electron hls.js
- * 2. Run: node src/streambert-anime-test.cjs
+ * 2. Run: node streambert-anime-test.js
  * 
  * The script will:
  * 1. Search for "Mob Psycho 100" on HiAnime
@@ -21,14 +21,7 @@
  * 5. Output a watchable URL
  */
 
-let app;
-let ipcMain;
-let net;
-try {
-  ({ app, ipcMain, net } = require("electron"));
-} catch {
-  // Plain Node uses the HTTP fallback below; Electron is optional.
-}
+const { app, ipcMain, net } = require("electron");
 const https = require("https");
 const http = require("http");
 const fs = require("fs");
@@ -43,7 +36,6 @@ const BASE_URL = "https://hianime.at";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const OBFUSCATION_KEY = Buffer.from("otaku-embed-v1", "utf8");
 const SERVER_NAME = "ZokoAnime";
-const SERVER_HOST = "zokoanime.video";
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
 
 // Keep-alive pools
@@ -303,40 +295,28 @@ async function hianimeEpisodes(showId) {
   return episodes;
 }
 
-function selectServerEmbed(html, mode) {
-  for (const chunk of String(html).split("server-item").slice(1)) {
-    if (getAttr(chunk, "data-type") !== mode) continue;
-    const hash = getAttr(chunk, "data-hash");
-    if (!hash) continue;
-
-    try {
-      const decoded = Buffer.from(hash, "base64").toString("utf8").trim();
-      const embed = new URL(decoded);
-      if (!["http:", "https:"].includes(embed.protocol)) continue;
-
-      const serverName = getAttr(chunk, "data-server-name");
-      const isZokoHost = embed.hostname === SERVER_HOST
-        || embed.hostname.endsWith(`.${SERVER_HOST}`);
-      if (serverName !== SERVER_NAME && !isZokoHost) continue;
-
-      return { embedUrl: embed.href, serverName };
-    } catch {
-      // Ignore malformed server entries and try the next compatible server.
-    }
-  }
-  return null;
-}
-
 async function hianimeStream(epId, mode) {
   const body = await hianimeCurl(
     `${BASE_URL}/api/theme/episode/servers?episodeId=${epId}`,
     { referer: BASE_URL + "/" },
   );
   const html = unwrapApiHtml(body);
-  const server = selectServerEmbed(html, mode);
-  if (!server) throw new Error(`No ${SERVER_NAME} server for ${mode}`);
 
-  const { embedUrl } = server;
+  let hash = null;
+  for (const chunk of html.split("server-item").slice(1)) {
+    if (
+      getAttr(chunk, "data-type") === mode &&
+      getAttr(chunk, "data-server-name") === SERVER_NAME
+    ) {
+      hash = getAttr(chunk, "data-hash");
+      if (hash) break;
+    }
+  }
+  if (!hash) throw new Error(`No ${SERVER_NAME} server for ${mode}`);
+
+  const embedUrl = Buffer.from(hash, "base64").toString("utf8").trim();
+  if (!/^https?:\/\//i.test(embedUrl)) throw new Error("Invalid embed url");
+
   const referer = embedUrl.replace(/^(https?:\/\/[^/]*).*$/, "$1/");
   const malMatch = embedUrl.match(/\/mal\/(\d+)\//);
   const malId = malMatch ? parseInt(malMatch[1], 10) : null;
@@ -393,8 +373,8 @@ let _currentVideoReferer = BASE_URL + "/";
 let _currentVideoSubtitle = null;
 let _currentVideoStartTime = 0;
 
-function proxied(u, token = _serverToken, prefix = "/proxy") {
-  return `${prefix}?t=${token}&url=${encodeURIComponent(u)}`;
+function proxied(u) {
+  return `/proxy?t=${_serverToken}&url=${encodeURIComponent(u)}`;
 }
 
 function escapeHtmlAttr(s) {
@@ -411,7 +391,7 @@ function jsonForScript(v) {
     .replace(new RegExp("[\\u2028\\u2029]", "g"), "");
 }
 
-function rewritePlaylist(text, playlistUrl, token = _serverToken, prefix = "/proxy") {
+function rewritePlaylist(text, playlistUrl) {
   const abs = (u) => new URL(u, playlistUrl).href;
   return text
     .split(/\r?\n/)
@@ -421,23 +401,12 @@ function rewritePlaylist(text, playlistUrl, token = _serverToken, prefix = "/pro
       if (t.startsWith("#")) {
         return line.replace(
           /URI="([^"]+)"/g,
-          (_, u) => `URI="${proxied(abs(u), token, prefix)}"`,
+          (_, u) => `URI="${proxied(abs(u))}"`,
         );
       }
-      return proxied(abs(t), token, prefix);
+      return proxied(abs(t));
     })
     .join("\n");
-}
-
-function convertSrtToVtt(text) {
-  const input = String(text).replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").trim();
-  if (!input || /^WEBVTT(?:\s|\n)/i.test(input)) return `${input}\n`;
-  const vtt = input.split("\n").map((line) =>
-    /^\s*\d{1,2}:\d{2}:\d{2},\d{3}\s+-->\s*\d{1,2}:\d{2}:\d{2},\d{3}/.test(line)
-      ? line.replace(/,/g, ".")
-      : line
-  ).join("\n");
-  return `WEBVTT\n\n${vtt}\n`;
 }
 
 function buildPlayerHtml(videoUrl, startTime, subtitleUrl, nonce) {
@@ -471,7 +440,7 @@ function buildPlayerHtml(videoUrl, startTime, subtitleUrl, nonce) {
 </body></html>`;
 }
 
-async function proxyRequest(target, req, res, hops = 0, session = {}) {
+async function proxyRequest(target, req, res, hops = 0) {
   let targetUrl;
   try {
     targetUrl = await assertPublicUrl(target);
@@ -483,7 +452,7 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
   const lib = targetUrl.protocol === "https:" ? https : http;
   const headers = {
     "User-Agent": USER_AGENT,
-    Referer: session.referer || _currentVideoReferer,
+    Referer: _currentVideoReferer,
     Accept: "*/*",
     "Accept-Encoding": "identity",
   };
@@ -512,7 +481,6 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
           req,
           res,
           hops + 1,
-          session,
         );
         return;
       }
@@ -543,12 +511,7 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
           let out = text;
           try {
             if (text.trimStart().startsWith("#EXTM3U")) {
-              out = rewritePlaylist(
-                text,
-                target,
-                session.token || _serverToken,
-                session.prefix || "/proxy",
-              );
+              out = rewritePlaylist(text, target);
             }
           } catch {
             res.writeHead(502);
@@ -561,41 +524,6 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
             "X-Content-Type-Options": "nosniff",
           });
           res.end(out);
-        });
-        proxyRes.on("error", () => {
-          if (!res.headersSent) res.writeHead(502);
-          res.end();
-        });
-        return;
-      }
-
-      const isSrt = /\.srt(?:[?&#]|$)/i.test(targetUrl.pathname + targetUrl.search)
-        || /(?:application\/x-subrip|text\/srt)/i.test(contentType);
-      if (isSrt && status === 200) {
-        const chunks = [];
-        let size = 0;
-        proxyRes.on("data", (chunk) => {
-          size += chunk.length;
-          if (size > MAX_TEXT_BYTES) {
-            proxyReq.destroy();
-            return;
-          }
-          chunks.push(chunk);
-        });
-        proxyRes.on("end", () => {
-          if (size > MAX_TEXT_BYTES) {
-            res.writeHead(502);
-            res.end();
-            return;
-          }
-          const output = convertSrtToVtt(Buffer.concat(chunks).toString("utf8"));
-          res.writeHead(200, {
-            "Content-Type": "text/vtt; charset=utf-8",
-            "Content-Length": Buffer.byteLength(output),
-            "Cache-Control": "no-store",
-            "X-Content-Type-Options": "nosniff",
-          });
-          res.end(output);
         });
         proxyRes.on("error", () => {
           if (!res.headersSent) res.writeHead(502);
@@ -729,75 +657,6 @@ function getPlayerServer() {
   });
 }
 
-const PLAYBACK_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
-const MAX_PLAYBACK_SESSIONS = 50;
-const _playbackSessions = new Map();
-
-function prunePlaybackSessions() {
-  const now = Date.now();
-  for (const [token, session] of _playbackSessions) {
-    if (now - session.lastUsed > PLAYBACK_SESSION_TTL_MS) {
-      _playbackSessions.delete(token);
-    }
-  }
-  while (_playbackSessions.size >= MAX_PLAYBACK_SESSIONS) {
-    _playbackSessions.delete(_playbackSessions.keys().next().value);
-  }
-}
-
-function createPlaybackSession(stream) {
-  prunePlaybackSessions();
-  const token = crypto.randomBytes(24).toString("hex");
-  const prefix = "/api/streambert/proxy";
-  _playbackSessions.set(token, {
-    referer: stream.referer,
-    lastUsed: Date.now(),
-  });
-
-  const subtitles = Array.isArray(stream.subtitles)
-    ? stream.subtitles
-    : stream.subtitle
-      ? [{ src: stream.subtitle, language: "en", label: "English", default: true }]
-      : [];
-
-  return {
-    videoUrl: proxied(stream.masterUrl, token, prefix),
-    subtitles: subtitles.map((track, index) => ({
-      src: proxied(track.url || track.src, token, prefix),
-      language: track.language || "und",
-      label: track.label || `Subtitles ${index + 1}`,
-      default: Boolean(track.default),
-    })),
-    resolution: stream.resolution,
-    malId: stream.malId,
-  };
-}
-
-function handlePlaybackProxy(req, res, url) {
-  const token = url.searchParams.get("t") || "";
-  const session = _playbackSessions.get(token);
-  if (!session || Date.now() - session.lastUsed > PLAYBACK_SESSION_TTL_MS) {
-    _playbackSessions.delete(token);
-    res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Playback session expired or is invalid.");
-    return;
-  }
-
-  const target = url.searchParams.get("url");
-  if (!target) {
-    res.writeHead(400);
-    res.end("Missing proxy target.");
-    return;
-  }
-
-  session.lastUsed = Date.now();
-  return proxyRequest(target, req, res, 0, {
-    token,
-    prefix: "/api/streambert/proxy",
-    referer: session.referer,
-  });
-}
-
 // Test Function
 async function testMobPsycho100() {
   console.log("🔍 Testing Mob Psycho 100 Episode 1...");
@@ -912,10 +771,6 @@ module.exports = {
   hianimeSearch,
   hianimeEpisodes,
   hianimeStream,
-  selectServerEmbed,
-  convertSrtToVtt,
-  createPlaybackSession,
-  handlePlaybackProxy,
   getPlayerServer,
   testMobPsycho100,
   runAnimeTest,
@@ -1082,15 +937,4 @@ async function interactiveMode() {
     console.error('❌ Error in interactive mode:', error.message);
     rl.close();
   }
-}
-
-
-if (require.main === module) {
-  const startInteractive = () => interactiveMode().catch((error) => {
-    console.error(`Fatal scraper error: ${error.message}`);
-    process.exitCode = 1;
-  });
-
-  if (app?.whenReady) app.whenReady().then(startInteractive);
-  else startInteractive();
 }

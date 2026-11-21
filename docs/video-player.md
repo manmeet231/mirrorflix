@@ -7,8 +7,7 @@ browser fullscreen.
 
 ## Sources and demo
 
-Database anime records can lack direct episode streams. In that case the modal uses
-the local Streambert service to resolve episodes and HLS playback on demand. The static demo's explicit `demoVideo`
+The current catalog has no actual episode streams. Its explicit `demoVideo`
 configuration uses the Big Buck Bunny clip at
 https://www.w3schools.com/html/mov_bbb.mp4 (Blender Foundation, CC BY 3.0).
 Film and attribution: https://peach.blender.org/ and
@@ -17,11 +16,9 @@ The external clip is unmodified, labelled as a demo in the player, and is not an
 anime episode. Its availability is controlled by the external host. No media
 files are committed or included in the Vite build.
 
-For direct playback add `videoUrl` to each episode; this always takes priority over
-Streambert resolution and the demo. Anime records without a direct source use the
-local Streambert service: opening the modal retrieves numbered episodes, and a
-number resolves that episode's proxied HLS source. Remove `movie.demoVideo` to
-disable demo fallback. Optional episode fields:
+For real playback add `videoUrl` to each episode; this always takes priority over
+the demo. Remove `movie.demoVideo` to disable fallback. Without either source the
+modal displays an availability message. Optional episode fields:
 
 ```js
 {
@@ -36,11 +33,8 @@ disable demo fallback. Optional episode fields:
 ```
 
 Prefer same-origin captions; cross-origin caption tracks need compatible CORS
-configuration. Use browser-compatible MP4, typically H.264/AAC, for progressive
-video. HLS `.m3u8` playback uses native browser support or lazy-loaded HLS.js.
-Streambert playlists, encryption keys, subtitles, and segments go through its
-same-origin tokenized proxy, which forwards byte ranges. There is no DRM or
-custom quality-selection UI. Do not embed credentials
+configuration. Use browser-compatible MP4, typically H.264/AAC. There is no HLS,
+DRM, quality switching, or invented backend integration. Do not embed credentials
 in browser code. Private media needs a separately implemented authorized delivery
 mechanism. The existing `onPlay` callback continues to delegate playback to the
 caller when provided; `showVideoPlayer={false}` disables built-in playback.
@@ -62,7 +56,9 @@ Like/My List persistence and progress persistence are outside this change.
 
 ## Deployment
 
-Anime playback requires the Node Streambert service and same-origin API forwarding; `npm run dev` starts both locally. Production deployment must provision that service separately. FastAPI and the database schema are unchanged.
+This feature does not change workflows, server configuration, database or backend.
+Review the PR before merging. The existing main-branch deployment has a separate
+SSH connectivity timeout; this player does not resolve it.
 
 ## Validation performed
 

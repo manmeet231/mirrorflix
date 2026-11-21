@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Navbar.css';
 
+<<<<<<< HEAD
 const Navbar = ({ onSearch }) => {
+=======
+const Navbar = ({ searchQuery, onSearchChange }) => {
+  const searchInput = useRef(null);
+>>>>>>> fa6fa660e2d653b219e6a06e304453857ed1f23d
   const [scrolled, setScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const clearSearch = () => {
+    onSearchChange('');
+    searchInput.current?.focus();
+  };
 
   const handleScroll = () => {
     setScrolled(window.scrollY > 50);
@@ -12,8 +22,10 @@ const Navbar = ({ onSearch }) => {
 
   const handleNavClick = (navItem) => {
     setActiveNav(navItem);
+    if (navItem === 'Home') onSearchChange('');
   };
 
+<<<<<<< HEAD
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     onSearch?.(searchQuery.trim());
@@ -21,6 +33,11 @@ const Navbar = ({ onSearch }) => {
 
   React.useEffect(() => {
     window.addEventListener('scroll', handleScroll);
+=======
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+>>>>>>> fa6fa660e2d653b219e6a06e304453857ed1f23d
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -62,6 +79,7 @@ const Navbar = ({ onSearch }) => {
             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
           />
         </svg>
+<<<<<<< HEAD
         <form className="search-bar" onSubmit={handleSearchSubmit} role="search">
           <input
             type="search"
@@ -71,6 +89,23 @@ const Navbar = ({ onSearch }) => {
             onChange={(event) => setSearchQuery(event.target.value)}
           />
         </form>
+=======
+        <div className="search-bar">
+          <input
+            ref={searchInput}
+            type="text"
+            placeholder="Titles, people, genres"
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                clearSearch();
+              }
+            }}
+          />
+        </div>
+>>>>>>> fa6fa660e2d653b219e6a06e304453857ed1f23d
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

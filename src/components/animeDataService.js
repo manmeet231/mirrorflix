@@ -5,48 +5,7 @@
 
 import { fetchAniListAnime, categorizeAnime } from './anilistService.js';
 import { hianimeSearch, hianimeEpisodes, hianimeStream } from '../streambert-browser-adapter.js';
-
-// Map AniList anime to the format expected by MovieCard components
-function mapAnimeToCardFormat(anime, streamData = null) {
-  // Use bannerImage as poster when available, otherwise use coverImage
-  const poster = anime.bannerImage || 
-                 (anime.coverImage?.extraLarge || anime.coverImage?.large || anime.coverImage?.medium);
-  
-  // Use coverImage for thumbnail (smaller image)
-  const thumbnail = anime.coverImage?.large || anime.coverImage?.medium;
-  
-  // Use coverImage for backdrop when bannerImage is not used as poster
-  const backdrop = anime.bannerImage ? anime.bannerImage : anime.coverImage?.extraLarge;
-  
-  return {
-    id: anime.id,
-    malId: anime.idMal,
-    title: anime.title.romaji || anime.title.english || anime.title.native,
-    description: anime.description,
-    poster: poster,
-    thumbnail: thumbnail,
-    backdrop: backdrop,
-    genres: anime.genres,
-    matchPercentage: anime.averageScore ? `${anime.averageScore}%` : null,
-    ageRating: anime.isAdult ? '18+' : 'U/A',
-    seasons: anime.episodes ? `${anime.episodes} Episodes` : null,
-    year: anime.seasonYear,
-    rating: anime.format,
-    duration: anime.duration ? `${anime.duration} min` : null,
-    status: anime.status,
-    season: anime.season,
-    seasonYear: anime.seasonYear,
-    popularity: anime.popularity,
-    nextAiringEpisode: anime.nextAiringEpisode,
-    streamUrl: streamData?.masterUrl || null,
-    episodes: streamData?.episodes || [],
-    isAdult: anime.isAdult,
-    synonyms: anime.synonyms,
-    // Add the original image data for reference
-    coverImage: anime.coverImage,
-    bannerImage: anime.bannerImage
-  };
-}
+import { mapAnimeToCardFormat } from './animeMapper.js';
 
 // Get stream data from Streambert for a specific anime
 async function getStreamData(animeTitle, episodeNumber = 1, mode = 'sub') {
@@ -101,7 +60,7 @@ async function getStreamData(animeTitle, episodeNumber = 1, mode = 'sub') {
 
 // Fetch anime with stream data
 async function fetchAnimeWithStreams(options = {}, streamOptions = {}) {
-  const { page = 1, perPage = 100 } = options;
+  const { page = 1, perPage = 150 } = options;
   const { episodeNumber = 1, mode = 'sub' } = streamOptions;
   
   try {
@@ -159,9 +118,9 @@ async function getCategorizedAnime(options = {}, streamOptions = {}) {
   };
 }
 
-export { 
-  fetchAnimeWithStreams, 
-  getCategorizedAnime, 
+export {
+  fetchAnimeWithStreams,
+  getCategorizedAnime,
   mapAnimeToCardFormat,
-  getStreamData 
+  getStreamData,
 };

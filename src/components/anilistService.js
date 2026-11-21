@@ -7,7 +7,7 @@ const ANILIST_API = 'https://graphql.anilist.co';
 
 // GraphQL query for fetching anime
 const ANIME_QUERY = `
-  query($page: Int, $perPage: Int, $sort: [MediaSort], $type: MediaType) {
+  query($page: Int, $perPage: Int, $sort: [MediaSort], $type: MediaType, $search: String, $isAdult: Boolean) {
     Page(page: $page, perPage: $perPage) {
       pageInfo {
         total
@@ -15,7 +15,7 @@ const ANIME_QUERY = `
         lastPage
         hasNextPage
       }
-      media(type: $type, sort: $sort) {
+      media(type: $type, sort: $sort, search: $search, isAdult: $isAdult) {
         id
         idMal
         title {
@@ -66,12 +66,16 @@ async function fetchAniListAnime(options = {}) {
     page = 1,
     perPage = 100,
     sort = ['TRENDING_DESC'],
-    type = 'ANIME'
+    type = 'ANIME',
+    search,
+    isAdult,
+    signal
   } = options;
 
   try {
     const response = await fetch(ANILIST_API, {
       method: 'POST',
+      signal,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -82,7 +86,9 @@ async function fetchAniListAnime(options = {}) {
           page,
           perPage,
           sort,
-          type
+          type,
+          search,
+          isAdult
         }
       })
     });
@@ -92,9 +98,15 @@ async function fetchAniListAnime(options = {}) {
     }
 
     const data = await response.json();
+    if (data.errors?.length || !Array.isArray(data.data?.Page?.media)) {
+      throw new Error('AniList returned an invalid catalog response.');
+    }
+
     return data.data;
   } catch (error) {
-    console.error('Error fetching AniList data:', error);
+    if (error.name !== 'AbortError') {
+      console.error('Error fetching AniList data:', error);
+    }
     throw error;
   }
 }
@@ -120,7 +132,7 @@ function categorizeAnime(animeList) {
     }
 
     // Categorize by genres
-    anime.genres.forEach(genre => {
+    (anime.genres || []).forEach(genre => {
       if (!categories['Genres'][genre]) {
         categories['Genres'][genre] = [];
       }

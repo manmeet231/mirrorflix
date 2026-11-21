@@ -1,0 +1,498 @@
+2026-11-20 14:05:15 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:11:37 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:11:37 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:12:49 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:17:21 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:17:25 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:30:56 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:30:59 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:35:50 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:35:57 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:37:12 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:37:29 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:45:57 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:45:57 - mirrorflix_backend - ERROR - Sync failed: cannot import name 'sync_anime_to_db' from 'services' (C:\Users\SINGH\Documents\mirrorflix\backend\services\__init__.py)
+2026-11-20 14:46:07 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:46:07 - mirrorflix_backend - ERROR - Sync failed: cannot import name 'sync_anime_to_db' from 'services' (C:\Users\SINGH\Documents\mirrorflix\backend\services\__init__.py)
+2026-11-20 14:47:27 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:47:27 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:48:31 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:48:31 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:48:42 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:48:47 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:48:57 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:48:57 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 14:48:58 - mirrorflix_backend - ERROR - Sync failed: HTTP 400: {"errors":[{"message":"Syntax Error: Expected Name, found (","status":400,"locations":[{"line":5,"column":41}]}],"data":null}
+2026-11-20 14:50:55 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:52:14 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:52:21 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:52:21 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 14:52:22 - mirrorflix_backend - ERROR - Sync failed: HTTP 400: {"errors":[{"message":"Unknown argument \"format\" on field \"description\" of type \"Media\".","status":400,"locations":[{"line":9,"column":33}]},{"message":"Unknown argument \"stripHTML\" on field \"description\" of type \"Media\".","status":400,"locations":[{"line":9,"column":47}]}],"data":null}
+2026-11-20 14:56:54 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:56:58 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:57:26 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:57:26 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 14:57:27 - mirrorflix_backend - INFO - Fetched page 1/100: 50 anime
+2026-11-20 14:57:29 - mirrorflix_backend - INFO - Fetched page 2/100: 50 anime
+2026-11-20 14:57:31 - mirrorflix_backend - INFO - Fetched page 3/100: 50 anime
+2026-11-20 14:57:33 - mirrorflix_backend - INFO - Fetched page 4/100: 50 anime
+2026-11-20 14:57:34 - mirrorflix_backend - INFO - Fetched page 5/100: 50 anime
+2026-11-20 14:57:36 - mirrorflix_backend - INFO - Fetched page 6/100: 50 anime
+2026-11-20 14:57:38 - mirrorflix_backend - INFO - Fetched page 7/100: 50 anime
+2026-11-20 14:57:40 - mirrorflix_backend - INFO - Fetched page 8/100: 50 anime
+2026-11-20 14:57:41 - mirrorflix_backend - INFO - Fetched page 9/100: 50 anime
+2026-11-20 14:57:43 - mirrorflix_backend - INFO - Fetched page 10/100: 50 anime
+2026-11-20 14:57:45 - mirrorflix_backend - INFO - Fetched page 11/100: 50 anime
+2026-11-20 14:57:46 - mirrorflix_backend - INFO - Fetched page 12/100: 50 anime
+2026-11-20 14:57:48 - mirrorflix_backend - INFO - Fetched page 13/100: 50 anime
+2026-11-20 14:57:50 - mirrorflix_backend - INFO - Fetched page 14/100: 50 anime
+2026-11-20 14:57:52 - mirrorflix_backend - INFO - Fetched page 15/100: 50 anime
+2026-11-20 14:57:54 - mirrorflix_backend - INFO - Fetched page 16/100: 50 anime
+2026-11-20 14:57:55 - mirrorflix_backend - INFO - Fetched page 17/100: 50 anime
+2026-11-20 14:57:57 - mirrorflix_backend - INFO - Fetched page 18/100: 50 anime
+2026-11-20 14:57:58 - mirrorflix_backend - INFO - Fetched page 19/100: 50 anime
+2026-11-20 14:58:00 - mirrorflix_backend - INFO - Fetched page 20/100: 50 anime
+2026-11-20 14:58:00 - mirrorflix_backend - INFO - Total anime fetched: 1000
+2026-11-20 14:58:00 - mirrorflix_backend - ERROR - Sync failed: No module named 'mapping_service'
+2026-11-20 14:58:55 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 14:58:58 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 14:59:01 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 14:59:01 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 14:59:02 - mirrorflix_backend - INFO - Fetched page 1/100: 50 anime
+2026-11-20 14:59:04 - mirrorflix_backend - INFO - Fetched page 2/100: 50 anime
+2026-11-20 14:59:06 - mirrorflix_backend - INFO - Fetched page 3/100: 50 anime
+2026-11-20 14:59:07 - mirrorflix_backend - INFO - Fetched page 4/100: 50 anime
+2026-11-20 14:59:09 - mirrorflix_backend - INFO - Fetched page 5/100: 50 anime
+2026-11-20 14:59:11 - mirrorflix_backend - INFO - Fetched page 6/100: 50 anime
+2026-11-20 14:59:12 - mirrorflix_backend - INFO - Fetched page 7/100: 50 anime
+2026-11-20 14:59:14 - mirrorflix_backend - INFO - Fetched page 8/100: 50 anime
+2026-11-20 14:59:15 - mirrorflix_backend - INFO - Fetched page 9/100: 50 anime
+2026-11-20 14:59:17 - mirrorflix_backend - INFO - Fetched page 10/100: 50 anime
+2026-11-20 14:59:18 - mirrorflix_backend - INFO - Fetched page 11/100: 50 anime
+2026-11-20 14:59:20 - mirrorflix_backend - INFO - Fetched page 12/100: 50 anime
+2026-11-20 14:59:21 - mirrorflix_backend - INFO - Fetched page 13/100: 50 anime
+2026-11-20 14:59:23 - mirrorflix_backend - INFO - Fetched page 14/100: 50 anime
+2026-11-20 14:59:25 - mirrorflix_backend - INFO - Fetched page 15/100: 50 anime
+2026-11-20 14:59:26 - mirrorflix_backend - INFO - Fetched page 16/100: 50 anime
+2026-11-20 14:59:28 - mirrorflix_backend - INFO - Fetched page 17/100: 50 anime
+2026-11-20 14:59:29 - mirrorflix_backend - INFO - Fetched page 18/100: 50 anime
+2026-11-20 14:59:31 - mirrorflix_backend - INFO - Fetched page 19/100: 50 anime
+2026-11-20 14:59:33 - mirrorflix_backend - INFO - Fetched page 20/100: 50 anime
+2026-11-20 14:59:33 - mirrorflix_backend - INFO - Total anime fetched: 1000
+2026-11-20 14:59:33 - mirrorflix_backend - ERROR - Sync failed: No module named 'mapping_service'
+2026-11-20 15:07:02 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 15:07:16 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 15:07:16 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 15:07:18 - mirrorflix_backend - INFO - Fetched page 1/100: 50 anime
+2026-11-20 15:07:19 - mirrorflix_backend - INFO - Fetched page 2/100: 50 anime
+2026-11-20 15:07:21 - mirrorflix_backend - INFO - Fetched page 3/100: 50 anime
+2026-11-20 15:07:23 - mirrorflix_backend - INFO - Fetched page 4/100: 50 anime
+2026-11-20 15:07:24 - mirrorflix_backend - INFO - Fetched page 5/100: 50 anime
+2026-11-20 15:07:26 - mirrorflix_backend - INFO - Fetched page 6/100: 50 anime
+2026-11-20 15:07:28 - mirrorflix_backend - INFO - Fetched page 7/100: 50 anime
+2026-11-20 15:07:29 - mirrorflix_backend - INFO - Fetched page 8/100: 50 anime
+2026-11-20 15:07:31 - mirrorflix_backend - INFO - Fetched page 9/100: 50 anime
+2026-11-20 15:07:32 - mirrorflix_backend - INFO - Fetched page 10/100: 50 anime
+2026-11-20 15:07:34 - mirrorflix_backend - INFO - Fetched page 11/100: 50 anime
+2026-11-20 15:07:36 - mirrorflix_backend - INFO - Fetched page 12/100: 50 anime
+2026-11-20 15:07:37 - mirrorflix_backend - INFO - Fetched page 13/100: 50 anime
+2026-11-20 15:07:39 - mirrorflix_backend - INFO - Fetched page 14/100: 50 anime
+2026-11-20 15:07:40 - mirrorflix_backend - INFO - Fetched page 15/100: 50 anime
+2026-11-20 15:07:42 - mirrorflix_backend - INFO - Fetched page 16/100: 50 anime
+2026-11-20 15:07:44 - mirrorflix_backend - INFO - Fetched page 17/100: 50 anime
+2026-11-20 15:07:45 - mirrorflix_backend - INFO - Fetched page 18/100: 50 anime
+2026-11-20 15:07:48 - mirrorflix_backend - INFO - Fetched page 19/100: 50 anime
+2026-11-20 15:07:49 - mirrorflix_backend - INFO - Fetched page 20/100: 50 anime
+2026-11-20 15:07:50 - mirrorflix_backend - INFO - Total anime fetched: 1000
+2026-11-20 15:07:50 - mirrorflix_backend - ERROR - Sync failed: No module named 'mapping_service'
+2026-11-20 15:08:03 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 15:14:25 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 15:14:35 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 15:14:35 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 15:14:36 - mirrorflix_backend - INFO - Fetched page 1/100: 50 anime
+2026-11-20 15:14:38 - mirrorflix_backend - INFO - Fetched page 2/100: 50 anime
+2026-11-20 15:14:40 - mirrorflix_backend - INFO - Fetched page 3/100: 50 anime
+2026-11-20 15:14:41 - mirrorflix_backend - INFO - Fetched page 4/100: 50 anime
+2026-11-20 15:14:43 - mirrorflix_backend - INFO - Fetched page 5/100: 50 anime
+2026-11-20 15:14:44 - mirrorflix_backend - INFO - Fetched page 6/100: 50 anime
+2026-11-20 15:14:46 - mirrorflix_backend - INFO - Fetched page 7/100: 50 anime
+2026-11-20 15:14:48 - mirrorflix_backend - INFO - Fetched page 8/100: 50 anime
+2026-11-20 15:14:49 - mirrorflix_backend - INFO - Fetched page 9/100: 50 anime
+2026-11-20 15:14:51 - mirrorflix_backend - INFO - Fetched page 10/100: 50 anime
+2026-11-20 15:14:53 - mirrorflix_backend - INFO - Fetched page 11/100: 50 anime
+2026-11-20 15:14:55 - mirrorflix_backend - INFO - Fetched page 12/100: 50 anime
+2026-11-20 15:14:56 - mirrorflix_backend - INFO - Fetched page 13/100: 50 anime
+2026-11-20 15:14:58 - mirrorflix_backend - INFO - Fetched page 14/100: 50 anime
+2026-11-20 15:15:00 - mirrorflix_backend - INFO - Fetched page 15/100: 50 anime
+2026-11-20 15:15:01 - mirrorflix_backend - INFO - Fetched page 16/100: 50 anime
+2026-11-20 15:15:04 - mirrorflix_backend - INFO - Fetched page 17/100: 50 anime
+2026-11-20 15:15:05 - mirrorflix_backend - INFO - Fetched page 18/100: 50 anime
+2026-11-20 15:15:07 - mirrorflix_backend - INFO - Fetched page 19/100: 50 anime
+2026-11-20 15:15:08 - mirrorflix_backend - INFO - Fetched page 20/100: 50 anime
+2026-11-20 15:15:09 - mirrorflix_backend - INFO - Total anime fetched: 1000
+2026-11-20 15:15:30 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Action/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:15:30 - mirrorflix_backend - ERROR - Error syncing genre Action: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:15:51 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Drama/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:15:51 - mirrorflix_backend - ERROR - Error syncing genre Drama: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:12 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Adventure/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:12 - mirrorflix_backend - ERROR - Error syncing genre Adventure: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:33 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Comedy/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:33 - mirrorflix_backend - ERROR - Error syncing genre Comedy: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:54 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Music/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:16:54 - mirrorflix_backend - ERROR - Error syncing genre Music: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:15 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Romance/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:15 - mirrorflix_backend - ERROR - Error syncing genre Romance: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:36 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Fantasy/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:36 - mirrorflix_backend - ERROR - Error syncing genre Fantasy: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:57 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Sports/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:17:57 - mirrorflix_backend - ERROR - Error syncing genre Sports: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:18:18 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Horror/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:18:18 - mirrorflix_backend - ERROR - Error syncing genre Horror: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:18:39 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Mystery/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:18:39 - mirrorflix_backend - ERROR - Error syncing genre Mystery: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:01 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Ecchi/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:01 - mirrorflix_backend - ERROR - Error syncing genre Ecchi: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:22 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Hentai/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:22 - mirrorflix_backend - ERROR - Error syncing genre Hentai: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:43 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Slice of Life/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:19:43 - mirrorflix_backend - ERROR - Error syncing genre Slice of Life: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:20:04 - mirrorflix_backend - ERROR - Error posting to http://49.14.154.91:8001/api/genres/Mahou Shoujo/animes: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:20:04 - mirrorflix_backend - ERROR - Error syncing genre Mahou Shoujo: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]
+2026-11-20 15:20:04 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 1000, 'genres_updated': 0, 'entries_added': 0, 'entries_skipped': 0, 'errors': [{'Action': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Drama': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Adventure': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Comedy': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Music': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Romance': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Fantasy': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Sports': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Horror': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Mystery': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Ecchi': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Hentai': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Slice of Life': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, {'Mahou Shoujo': 'Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}], 'by_genre': {'Action': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Drama': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Adventure': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Comedy': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Music': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Romance': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Fantasy': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Sports': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Horror': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Mystery': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Ecchi': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Hentai': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Slice of Life': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}, 'Mahou Shoujo': {'added': 0, 'status': 'error: Cannot connect to host 49.14.154.91:8001 ssl:default [The semaphore timeout period has expired]'}}}
+2026-11-20 15:31:11 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 15:35:08 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 15:35:22 - mirrorflix_backend - INFO - Starting sync: status=RELEASING, per_page=50, max_pages=20
+2026-11-20 15:35:22 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING
+2026-11-20 15:35:23 - mirrorflix_backend - INFO - Fetched page 1/100: 50 anime
+2026-11-20 15:35:26 - mirrorflix_backend - INFO - Fetched page 2/100: 50 anime
+2026-11-20 15:35:27 - mirrorflix_backend - INFO - Fetched page 3/100: 50 anime
+2026-11-20 15:35:29 - mirrorflix_backend - INFO - Fetched page 4/100: 50 anime
+2026-11-20 15:35:31 - mirrorflix_backend - INFO - Fetched page 5/100: 50 anime
+2026-11-20 15:35:33 - mirrorflix_backend - INFO - Fetched page 6/100: 50 anime
+2026-11-20 15:35:34 - mirrorflix_backend - INFO - Fetched page 7/100: 50 anime
+2026-11-20 15:35:36 - mirrorflix_backend - INFO - Fetched page 8/100: 50 anime
+2026-11-20 15:35:38 - mirrorflix_backend - INFO - Fetched page 9/100: 50 anime
+2026-11-20 15:35:39 - mirrorflix_backend - INFO - Fetched page 10/100: 50 anime
+2026-11-20 15:35:41 - mirrorflix_backend - INFO - Fetched page 11/100: 50 anime
+2026-11-20 15:35:43 - mirrorflix_backend - INFO - Fetched page 12/100: 50 anime
+2026-11-20 15:35:44 - mirrorflix_backend - INFO - Fetched page 13/100: 50 anime
+2026-11-20 15:35:46 - mirrorflix_backend - INFO - Fetched page 14/100: 50 anime
+2026-11-20 15:35:48 - mirrorflix_backend - INFO - Fetched page 15/100: 50 anime
+2026-11-20 15:35:50 - mirrorflix_backend - INFO - Fetched page 16/100: 50 anime
+2026-11-20 15:35:52 - mirrorflix_backend - INFO - Fetched page 17/100: 50 anime
+2026-11-20 15:35:54 - mirrorflix_backend - INFO - Fetched page 18/100: 50 anime
+2026-11-20 15:35:55 - mirrorflix_backend - INFO - Fetched page 19/100: 50 anime
+2026-11-20 15:35:57 - mirrorflix_backend - INFO - Fetched page 20/100: 50 anime
+2026-11-20 15:35:57 - mirrorflix_backend - INFO - Total anime fetched: 1000
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Action/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 488 anime to genre: Action
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Drama/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 95 anime to genre: Drama
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Adventure/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 80 anime to genre: Adventure
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Comedy/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 254 anime to genre: Comedy
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Music/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 3 anime to genre: Music
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Romance/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 16 anime to genre: Romance
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Fantasy/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 36 anime to genre: Fantasy
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Sports/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 2 anime to genre: Sports
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Horror/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 2 anime to genre: Horror
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mystery/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 4 anime to genre: Mystery
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Ecchi/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 8 anime to genre: Ecchi
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Hentai/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 6 anime to genre: Hentai
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Slice of Life/animes: Status 200
+2026-11-20 15:35:59 - mirrorflix_backend - INFO - Added 5 anime to genre: Slice of Life
+2026-11-20 15:36:00 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mahou Shoujo/animes: Status 200
+2026-11-20 15:36:00 - mirrorflix_backend - INFO - Added 1 anime to genre: Mahou Shoujo
+2026-11-20 15:36:00 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 1000, 'genres_updated': 14, 'entries_added': 1000, 'entries_skipped': 0, 'errors': [], 'by_genre': {'Action': {'added': 488, 'status': 'success'}, 'Drama': {'added': 95, 'status': 'success'}, 'Adventure': {'added': 80, 'status': 'success'}, 'Comedy': {'added': 254, 'status': 'success'}, 'Music': {'added': 3, 'status': 'success'}, 'Romance': {'added': 16, 'status': 'success'}, 'Fantasy': {'added': 36, 'status': 'success'}, 'Sports': {'added': 2, 'status': 'success'}, 'Horror': {'added': 2, 'status': 'success'}, 'Mystery': {'added': 4, 'status': 'success'}, 'Ecchi': {'added': 8, 'status': 'success'}, 'Hentai': {'added': 6, 'status': 'success'}, 'Slice of Life': {'added': 5, 'status': 'success'}, 'Mahou Shoujo': {'added': 1, 'status': 'success'}}}
+2026-11-20 15:51:48 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 15:52:13 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 15:56:49 - mirrorflix_backend - INFO - Starting sync: statuses=['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'], per_page=50, max_pages_per_status=2, target_total=50, skip_existing=True
+2026-11-20 15:56:50 - mirrorflix_backend - INFO - Fetched 1000 existing anime IDs from database
+2026-11-20 15:56:50 - mirrorflix_backend - INFO - Loaded 1000 existing anime IDs from database
+2026-11-20 15:56:50 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING (seen_ids: 1000, target: 50)
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Fetched page 1: 50 total, 50 new (cumulative: 50)
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Target total (50) reached for status RELEASING
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Total new anime fetched for RELEASING: 50
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - After RELEASING: 50 total unique anime
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Mapping 50 anime to database schema
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Syncing 50 anime to database
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Action/animes: Status 200
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Added 31 anime to genre: Action
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Drama/animes: Status 200
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Added 5 anime to genre: Drama
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Adventure/animes: Status 200
+2026-11-20 15:56:51 - mirrorflix_backend - INFO - Added 5 anime to genre: Adventure
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Comedy/animes: Status 200
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - Added 7 anime to genre: Comedy
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Music/animes: Status 200
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - Added 1 anime to genre: Music
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Romance/animes: Status 200
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - Added 1 anime to genre: Romance
+2026-11-20 15:56:52 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 50, 'genres_updated': 6, 'entries_added': 50, 'entries_skipped': 0, 'errors': [], 'by_genre': {'Action': {'added': 31, 'status': 'success'}, 'Drama': {'added': 5, 'status': 'success'}, 'Adventure': {'added': 5, 'status': 'success'}, 'Comedy': {'added': 7, 'status': 'success'}, 'Music': {'added': 1, 'status': 'success'}, 'Romance': {'added': 1, 'status': 'success'}}}
+2026-11-20 15:56:55 - mirrorflix_backend - INFO - Starting sync: statuses=['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'], per_page=50, max_pages_per_status=2, target_total=50, skip_existing=True
+2026-11-20 15:56:56 - mirrorflix_backend - INFO - Fetched 1000 existing anime IDs from database
+2026-11-20 15:56:56 - mirrorflix_backend - INFO - Loaded 1000 existing anime IDs from database
+2026-11-20 15:56:56 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING (seen_ids: 1000, target: 50)
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - Fetched page 1: 50 total, 50 new (cumulative: 50)
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - Target total (50) reached for status RELEASING
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - Total new anime fetched for RELEASING: 50
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - After RELEASING: 50 total unique anime
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - Mapping 50 anime to database schema
+2026-11-20 15:56:57 - mirrorflix_backend - INFO - Syncing 50 anime to database
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Action/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 31 anime to genre: Action
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Drama/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 5 anime to genre: Drama
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Adventure/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 5 anime to genre: Adventure
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Comedy/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 7 anime to genre: Comedy
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Music/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 1 anime to genre: Music
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Romance/animes: Status 200
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Added 1 anime to genre: Romance
+2026-11-20 15:56:58 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 50, 'genres_updated': 6, 'entries_added': 50, 'entries_skipped': 0, 'errors': [], 'by_genre': {'Action': {'added': 31, 'status': 'success'}, 'Drama': {'added': 5, 'status': 'success'}, 'Adventure': {'added': 5, 'status': 'success'}, 'Comedy': {'added': 7, 'status': 'success'}, 'Music': {'added': 1, 'status': 'success'}, 'Romance': {'added': 1, 'status': 'success'}}}
+2026-11-20 15:57:27 - mirrorflix_backend - INFO - Starting sync: statuses=['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'], per_page=50, max_pages_per_status=10, target_total=200, skip_existing=True
+2026-11-20 15:57:28 - mirrorflix_backend - INFO - Fetched 1000 existing anime IDs from database
+2026-11-20 15:57:28 - mirrorflix_backend - INFO - Loaded 1000 existing anime IDs from database
+2026-11-20 15:57:28 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING (seen_ids: 1000, target: 200)
+2026-11-20 15:57:29 - mirrorflix_backend - INFO - Fetched page 1: 50 total, 50 new (cumulative: 50)
+2026-11-20 15:57:31 - mirrorflix_backend - INFO - Fetched page 2: 50 total, 50 new (cumulative: 100)
+2026-11-20 15:57:33 - mirrorflix_backend - INFO - Fetched page 3: 50 total, 50 new (cumulative: 150)
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - Fetched page 4: 50 total, 50 new (cumulative: 200)
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - Target total (200) reached for status RELEASING
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - Total new anime fetched for RELEASING: 200
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - After RELEASING: 200 total unique anime
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - Mapping 200 anime to database schema
+2026-11-20 15:57:34 - mirrorflix_backend - INFO - Syncing 200 anime to database
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Action/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 121 anime to genre: Action
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Drama/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 17 anime to genre: Drama
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Adventure/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 11 anime to genre: Adventure
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Comedy/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 40 anime to genre: Comedy
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Music/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 1 anime to genre: Music
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Romance/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 3 anime to genre: Romance
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Fantasy/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 2 anime to genre: Fantasy
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Sports/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 1 anime to genre: Sports
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Horror/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 1 anime to genre: Horror
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mystery/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 1 anime to genre: Mystery
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Ecchi/animes: Status 200
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Added 2 anime to genre: Ecchi
+2026-11-20 15:57:35 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 200, 'genres_updated': 11, 'entries_added': 200, 'entries_skipped': 0, 'errors': [], 'by_genre': {'Action': {'added': 121, 'status': 'success'}, 'Drama': {'added': 17, 'status': 'success'}, 'Adventure': {'added': 11, 'status': 'success'}, 'Comedy': {'added': 40, 'status': 'success'}, 'Music': {'added': 1, 'status': 'success'}, 'Romance': {'added': 3, 'status': 'success'}, 'Fantasy': {'added': 2, 'status': 'success'}, 'Sports': {'added': 1, 'status': 'success'}, 'Horror': {'added': 1, 'status': 'success'}, 'Mystery': {'added': 1, 'status': 'success'}, 'Ecchi': {'added': 2, 'status': 'success'}}}
+2026-11-20 15:57:40 - mirrorflix_backend - INFO - Starting sync: statuses=['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'], per_page=50, max_pages_per_status=100, target_total=5000, skip_existing=True
+2026-11-20 15:57:40 - mirrorflix_backend - INFO - Fetched 1000 existing anime IDs from database
+2026-11-20 15:57:40 - mirrorflix_backend - INFO - Loaded 1000 existing anime IDs from database
+2026-11-20 15:57:40 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING (seen_ids: 1000, target: 5000)
+2026-11-20 15:57:41 - mirrorflix_backend - INFO - Fetched page 1: 50 total, 50 new (cumulative: 50)
+2026-11-20 15:57:43 - mirrorflix_backend - INFO - Fetched page 2: 50 total, 50 new (cumulative: 100)
+2026-11-20 15:57:44 - mirrorflix_backend - INFO - Fetched page 3: 50 total, 50 new (cumulative: 150)
+2026-11-20 15:57:46 - mirrorflix_backend - INFO - Fetched page 4: 50 total, 50 new (cumulative: 200)
+2026-11-20 15:57:48 - mirrorflix_backend - INFO - Fetched page 5: 50 total, 50 new (cumulative: 250)
+2026-11-20 15:57:49 - mirrorflix_backend - INFO - Fetched page 6: 50 total, 50 new (cumulative: 300)
+2026-11-20 15:57:52 - mirrorflix_backend - INFO - Fetched page 7: 50 total, 50 new (cumulative: 350)
+2026-11-20 15:57:53 - mirrorflix_backend - INFO - Fetched page 8: 50 total, 50 new (cumulative: 400)
+2026-11-20 15:57:55 - mirrorflix_backend - INFO - Fetched page 9: 50 total, 50 new (cumulative: 450)
+2026-11-20 15:57:57 - mirrorflix_backend - INFO - Fetched page 10: 50 total, 50 new (cumulative: 500)
+2026-11-20 15:57:59 - mirrorflix_backend - INFO - Fetched page 11: 50 total, 50 new (cumulative: 550)
+2026-11-20 15:58:02 - mirrorflix_backend - INFO - Fetched page 12: 50 total, 50 new (cumulative: 600)
+2026-11-20 15:58:03 - mirrorflix_backend - INFO - Fetched page 13: 50 total, 50 new (cumulative: 650)
+2026-11-20 15:58:07 - mirrorflix_backend - INFO - Fetched page 14: 50 total, 50 new (cumulative: 700)
+2026-11-20 15:58:08 - mirrorflix_backend - INFO - Fetched page 15: 50 total, 50 new (cumulative: 750)
+2026-11-20 15:58:10 - mirrorflix_backend - INFO - Fetched page 16: 50 total, 50 new (cumulative: 800)
+2026-11-20 15:58:12 - mirrorflix_backend - INFO - Fetched page 17: 50 total, 50 new (cumulative: 850)
+2026-11-20 15:58:14 - mirrorflix_backend - INFO - Fetched page 18: 50 total, 50 new (cumulative: 900)
+2026-11-20 15:58:15 - mirrorflix_backend - INFO - Fetched page 19: 50 total, 50 new (cumulative: 950)
+2026-11-20 15:58:17 - mirrorflix_backend - INFO - Fetched page 20: 50 total, 50 new (cumulative: 1000)
+2026-11-20 15:58:18 - mirrorflix_backend - INFO - Fetched page 21: 50 total, 50 new (cumulative: 1050)
+2026-11-20 15:58:20 - mirrorflix_backend - INFO - Fetched page 22: 50 total, 50 new (cumulative: 1100)
+2026-11-20 15:58:22 - mirrorflix_backend - INFO - Fetched page 23: 50 total, 50 new (cumulative: 1150)
+2026-11-20 15:58:23 - mirrorflix_backend - INFO - Fetched page 24: 50 total, 50 new (cumulative: 1200)
+2026-11-20 15:58:25 - mirrorflix_backend - INFO - Fetched page 25: 50 total, 50 new (cumulative: 1250)
+2026-11-20 15:58:27 - mirrorflix_backend - INFO - Fetched page 26: 50 total, 50 new (cumulative: 1300)
+2026-11-20 15:58:28 - mirrorflix_backend - INFO - Fetched page 27: 50 total, 50 new (cumulative: 1350)
+2026-11-20 15:58:30 - mirrorflix_backend - INFO - Fetched page 28: 50 total, 50 new (cumulative: 1400)
+2026-11-20 15:58:32 - mirrorflix_backend - INFO - Fetched page 29: 50 total, 50 new (cumulative: 1450)
+2026-11-20 15:58:33 - mirrorflix_backend - INFO - Fetched page 30: 50 total, 50 new (cumulative: 1500)
+2026-11-20 15:58:35 - mirrorflix_backend - INFO - Fetched page 31: 50 total, 50 new (cumulative: 1550)
+2026-11-20 15:58:37 - mirrorflix_backend - INFO - Fetched page 32: 50 total, 50 new (cumulative: 1600)
+2026-11-20 15:58:38 - mirrorflix_backend - INFO - Fetched page 33: 50 total, 50 new (cumulative: 1650)
+2026-11-20 15:58:40 - mirrorflix_backend - INFO - Fetched page 34: 50 total, 50 new (cumulative: 1700)
+2026-11-20 15:58:41 - mirrorflix_backend - INFO - Fetched page 35: 50 total, 50 new (cumulative: 1750)
+2026-11-20 15:58:44 - mirrorflix_backend - INFO - Fetched page 36: 50 total, 50 new (cumulative: 1800)
+2026-11-20 15:58:45 - mirrorflix_backend - INFO - Fetched page 37: 50 total, 50 new (cumulative: 1850)
+2026-11-20 15:58:47 - mirrorflix_backend - INFO - Fetched page 38: 50 total, 50 new (cumulative: 1900)
+2026-11-20 15:58:49 - mirrorflix_backend - INFO - Fetched page 39: 50 total, 50 new (cumulative: 1950)
+2026-11-20 15:58:50 - mirrorflix_backend - INFO - Fetched page 40: 50 total, 50 new (cumulative: 2000)
+2026-11-20 15:58:51 - mirrorflix_backend - ERROR - Sync failed: HTTP 429: {"data":null,"errors":[{"message":"Too Many Requests.","status":429}]}
+2026-11-20 15:59:28 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 15:59:28 - mirrorflix_backend - INFO - Shutting down service...
+2026-11-20 16:13:24 - mirrorflix_backend - INFO - Startup sequence started
+2026-11-20 16:14:24 - mirrorflix_backend - INFO - Starting sync: statuses=['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'], per_page=50, max_pages_per_status=100, target_total=5000, skip_existing=True
+2026-11-20 16:14:25 - mirrorflix_backend - INFO - Fetched 1000 existing anime IDs from database
+2026-11-20 16:14:25 - mirrorflix_backend - INFO - Loaded 1000 existing anime IDs from database
+2026-11-20 16:14:25 - mirrorflix_backend - INFO - Fetching anime with status: RELEASING (seen_ids: 1000, target: 5000)
+2026-11-20 16:14:26 - mirrorflix_backend - INFO - Fetched page 1: 50 total, 50 new (cumulative: 50)
+2026-11-20 16:14:31 - mirrorflix_backend - INFO - Fetched page 2: 50 total, 50 new (cumulative: 100)
+2026-11-20 16:14:36 - mirrorflix_backend - INFO - Fetched page 3: 50 total, 50 new (cumulative: 150)
+2026-11-20 16:14:41 - mirrorflix_backend - INFO - Fetched page 4: 50 total, 50 new (cumulative: 200)
+2026-11-20 16:14:45 - mirrorflix_backend - INFO - Fetched page 5: 50 total, 50 new (cumulative: 250)
+2026-11-20 16:14:50 - mirrorflix_backend - INFO - Fetched page 6: 50 total, 50 new (cumulative: 300)
+2026-11-20 16:14:55 - mirrorflix_backend - INFO - Fetched page 7: 50 total, 50 new (cumulative: 350)
+2026-11-20 16:15:00 - mirrorflix_backend - INFO - Fetched page 8: 50 total, 50 new (cumulative: 400)
+2026-11-20 16:15:04 - mirrorflix_backend - INFO - Fetched page 9: 50 total, 50 new (cumulative: 450)
+2026-11-20 16:15:09 - mirrorflix_backend - INFO - Fetched page 10: 50 total, 50 new (cumulative: 500)
+2026-11-20 16:15:14 - mirrorflix_backend - INFO - Fetched page 11: 50 total, 50 new (cumulative: 550)
+2026-11-20 16:15:18 - mirrorflix_backend - INFO - Fetched page 12: 50 total, 50 new (cumulative: 600)
+2026-11-20 16:15:23 - mirrorflix_backend - INFO - Fetched page 13: 50 total, 50 new (cumulative: 650)
+2026-11-20 16:15:28 - mirrorflix_backend - INFO - Fetched page 14: 50 total, 50 new (cumulative: 700)
+2026-11-20 16:15:32 - mirrorflix_backend - INFO - Fetched page 15: 50 total, 50 new (cumulative: 750)
+2026-11-20 16:15:37 - mirrorflix_backend - INFO - Fetched page 16: 50 total, 50 new (cumulative: 800)
+2026-11-20 16:15:42 - mirrorflix_backend - INFO - Fetched page 17: 50 total, 50 new (cumulative: 850)
+2026-11-20 16:15:46 - mirrorflix_backend - INFO - Fetched page 18: 50 total, 50 new (cumulative: 900)
+2026-11-20 16:15:51 - mirrorflix_backend - INFO - Fetched page 19: 50 total, 50 new (cumulative: 950)
+2026-11-20 16:15:56 - mirrorflix_backend - INFO - Fetched page 20: 50 total, 50 new (cumulative: 1000)
+2026-11-20 16:16:00 - mirrorflix_backend - INFO - Fetched page 21: 50 total, 50 new (cumulative: 1050)
+2026-11-20 16:16:05 - mirrorflix_backend - INFO - Fetched page 22: 50 total, 50 new (cumulative: 1100)
+2026-11-20 16:16:10 - mirrorflix_backend - INFO - Fetched page 23: 50 total, 50 new (cumulative: 1150)
+2026-11-20 16:16:14 - mirrorflix_backend - INFO - Fetched page 24: 50 total, 50 new (cumulative: 1200)
+2026-11-20 16:16:19 - mirrorflix_backend - INFO - Fetched page 25: 50 total, 50 new (cumulative: 1250)
+2026-11-20 16:16:24 - mirrorflix_backend - INFO - Fetched page 26: 50 total, 50 new (cumulative: 1300)
+2026-11-20 16:16:29 - mirrorflix_backend - INFO - Fetched page 27: 50 total, 50 new (cumulative: 1350)
+2026-11-20 16:16:34 - mirrorflix_backend - INFO - Fetched page 28: 50 total, 50 new (cumulative: 1400)
+2026-11-20 16:16:39 - mirrorflix_backend - INFO - Fetched page 29: 50 total, 50 new (cumulative: 1450)
+2026-11-20 16:16:43 - mirrorflix_backend - INFO - Fetched page 30: 50 total, 50 new (cumulative: 1500)
+2026-11-20 16:16:49 - mirrorflix_backend - INFO - Fetched page 31: 50 total, 50 new (cumulative: 1550)
+2026-11-20 16:16:53 - mirrorflix_backend - INFO - Fetched page 32: 50 total, 50 new (cumulative: 1600)
+2026-11-20 16:16:58 - mirrorflix_backend - INFO - Fetched page 33: 50 total, 50 new (cumulative: 1650)
+2026-11-20 16:17:03 - mirrorflix_backend - INFO - Fetched page 34: 50 total, 50 new (cumulative: 1700)
+2026-11-20 16:17:08 - mirrorflix_backend - INFO - Fetched page 35: 50 total, 50 new (cumulative: 1750)
+2026-11-20 16:17:13 - mirrorflix_backend - INFO - Fetched page 36: 50 total, 50 new (cumulative: 1800)
+2026-11-20 16:17:17 - mirrorflix_backend - INFO - Fetched page 37: 50 total, 50 new (cumulative: 1850)
+2026-11-20 16:17:22 - mirrorflix_backend - INFO - Fetched page 38: 50 total, 50 new (cumulative: 1900)
+2026-11-20 16:17:27 - mirrorflix_backend - INFO - Fetched page 39: 50 total, 50 new (cumulative: 1950)
+2026-11-20 16:17:31 - mirrorflix_backend - INFO - Fetched page 40: 50 total, 50 new (cumulative: 2000)
+2026-11-20 16:17:36 - mirrorflix_backend - INFO - Fetched page 41: 50 total, 50 new (cumulative: 2050)
+2026-11-20 16:17:41 - mirrorflix_backend - INFO - Fetched page 42: 50 total, 50 new (cumulative: 2100)
+2026-11-20 16:17:45 - mirrorflix_backend - INFO - Fetched page 43: 50 total, 50 new (cumulative: 2150)
+2026-11-20 16:17:50 - mirrorflix_backend - INFO - Fetched page 44: 50 total, 50 new (cumulative: 2200)
+2026-11-20 16:17:55 - mirrorflix_backend - INFO - Fetched page 45: 50 total, 50 new (cumulative: 2250)
+2026-11-20 16:18:00 - mirrorflix_backend - INFO - Fetched page 46: 50 total, 50 new (cumulative: 2300)
+2026-11-20 16:18:05 - mirrorflix_backend - INFO - Fetched page 47: 50 total, 50 new (cumulative: 2350)
+2026-11-20 16:18:10 - mirrorflix_backend - INFO - Fetched page 48: 50 total, 50 new (cumulative: 2400)
+2026-11-20 16:18:14 - mirrorflix_backend - INFO - Fetched page 49: 50 total, 50 new (cumulative: 2450)
+2026-11-20 16:18:19 - mirrorflix_backend - INFO - Fetched page 50: 50 total, 50 new (cumulative: 2500)
+2026-11-20 16:18:24 - mirrorflix_backend - INFO - Fetched page 51: 50 total, 50 new (cumulative: 2550)
+2026-11-20 16:18:28 - mirrorflix_backend - INFO - Fetched page 52: 50 total, 50 new (cumulative: 2600)
+2026-11-20 16:18:33 - mirrorflix_backend - INFO - Fetched page 53: 50 total, 50 new (cumulative: 2650)
+2026-11-20 16:18:37 - mirrorflix_backend - INFO - Fetched page 54: 50 total, 50 new (cumulative: 2700)
+2026-11-20 16:18:42 - mirrorflix_backend - INFO - Fetched page 55: 50 total, 50 new (cumulative: 2750)
+2026-11-20 16:18:47 - mirrorflix_backend - INFO - Fetched page 56: 50 total, 50 new (cumulative: 2800)
+2026-11-20 16:18:51 - mirrorflix_backend - INFO - Fetched page 57: 50 total, 50 new (cumulative: 2850)
+2026-11-20 16:18:56 - mirrorflix_backend - INFO - Fetched page 58: 50 total, 50 new (cumulative: 2900)
+2026-11-20 16:19:00 - mirrorflix_backend - INFO - Fetched page 59: 50 total, 50 new (cumulative: 2950)
+2026-11-20 16:19:05 - mirrorflix_backend - INFO - Fetched page 60: 50 total, 50 new (cumulative: 3000)
+2026-11-20 16:19:10 - mirrorflix_backend - INFO - Fetched page 61: 50 total, 50 new (cumulative: 3050)
+2026-11-20 16:19:15 - mirrorflix_backend - INFO - Fetched page 62: 50 total, 50 new (cumulative: 3100)
+2026-11-20 16:19:20 - mirrorflix_backend - INFO - Fetched page 63: 50 total, 50 new (cumulative: 3150)
+2026-11-20 16:19:25 - mirrorflix_backend - INFO - Fetched page 64: 50 total, 50 new (cumulative: 3200)
+2026-11-20 16:19:30 - mirrorflix_backend - INFO - Fetched page 65: 50 total, 50 new (cumulative: 3250)
+2026-11-20 16:19:35 - mirrorflix_backend - INFO - Fetched page 66: 50 total, 50 new (cumulative: 3300)
+2026-11-20 16:19:40 - mirrorflix_backend - INFO - Fetched page 67: 50 total, 50 new (cumulative: 3350)
+2026-11-20 16:19:45 - mirrorflix_backend - INFO - Fetched page 68: 50 total, 50 new (cumulative: 3400)
+2026-11-20 16:19:50 - mirrorflix_backend - INFO - Fetched page 69: 50 total, 50 new (cumulative: 3450)
+2026-11-20 16:19:55 - mirrorflix_backend - INFO - Fetched page 70: 50 total, 50 new (cumulative: 3500)
+2026-11-20 16:19:59 - mirrorflix_backend - INFO - Fetched page 71: 50 total, 50 new (cumulative: 3550)
+2026-11-20 16:20:04 - mirrorflix_backend - INFO - Fetched page 72: 50 total, 50 new (cumulative: 3600)
+2026-11-20 16:20:08 - mirrorflix_backend - INFO - Fetched page 73: 50 total, 50 new (cumulative: 3650)
+2026-11-20 16:20:13 - mirrorflix_backend - INFO - Fetched page 74: 50 total, 50 new (cumulative: 3700)
+2026-11-20 16:20:18 - mirrorflix_backend - INFO - Fetched page 75: 50 total, 50 new (cumulative: 3750)
+2026-11-20 16:20:23 - mirrorflix_backend - INFO - Fetched page 76: 50 total, 50 new (cumulative: 3800)
+2026-11-20 16:20:28 - mirrorflix_backend - INFO - Fetched page 77: 50 total, 50 new (cumulative: 3850)
+2026-11-20 16:20:32 - mirrorflix_backend - INFO - Fetched page 78: 50 total, 50 new (cumulative: 3900)
+2026-11-20 16:20:37 - mirrorflix_backend - INFO - Fetched page 79: 50 total, 50 new (cumulative: 3950)
+2026-11-20 16:20:42 - mirrorflix_backend - INFO - Fetched page 80: 50 total, 50 new (cumulative: 4000)
+2026-11-20 16:20:47 - mirrorflix_backend - INFO - Fetched page 81: 50 total, 50 new (cumulative: 4050)
+2026-11-20 16:20:52 - mirrorflix_backend - INFO - Fetched page 82: 50 total, 50 new (cumulative: 4100)
+2026-11-20 16:20:56 - mirrorflix_backend - INFO - Fetched page 83: 50 total, 50 new (cumulative: 4150)
+2026-11-20 16:21:02 - mirrorflix_backend - INFO - Fetched page 84: 50 total, 50 new (cumulative: 4200)
+2026-11-20 16:21:07 - mirrorflix_backend - INFO - Fetched page 85: 50 total, 50 new (cumulative: 4250)
+2026-11-20 16:21:11 - mirrorflix_backend - INFO - Fetched page 86: 50 total, 50 new (cumulative: 4300)
+2026-11-20 16:21:16 - mirrorflix_backend - INFO - Fetched page 87: 50 total, 50 new (cumulative: 4350)
+2026-11-20 16:21:20 - mirrorflix_backend - INFO - Fetched page 88: 50 total, 50 new (cumulative: 4400)
+2026-11-20 16:21:28 - mirrorflix_backend - INFO - Fetched page 89: 50 total, 50 new (cumulative: 4450)
+2026-11-20 16:21:33 - mirrorflix_backend - INFO - Fetched page 90: 50 total, 50 new (cumulative: 4500)
+2026-11-20 16:21:37 - mirrorflix_backend - INFO - Fetched page 91: 50 total, 50 new (cumulative: 4550)
+2026-11-20 16:21:44 - mirrorflix_backend - INFO - Fetched page 92: 50 total, 50 new (cumulative: 4600)
+2026-11-20 16:21:49 - mirrorflix_backend - INFO - Fetched page 93: 50 total, 50 new (cumulative: 4650)
+2026-11-20 16:21:54 - mirrorflix_backend - INFO - Fetched page 94: 50 total, 50 new (cumulative: 4700)
+2026-11-20 16:21:58 - mirrorflix_backend - INFO - Fetched page 95: 50 total, 50 new (cumulative: 4750)
+2026-11-20 16:22:04 - mirrorflix_backend - INFO - Fetched page 96: 50 total, 50 new (cumulative: 4800)
+2026-11-20 16:22:08 - mirrorflix_backend - INFO - Fetched page 97: 50 total, 50 new (cumulative: 4850)
+2026-11-20 16:22:13 - mirrorflix_backend - INFO - Fetched page 98: 50 total, 50 new (cumulative: 4900)
+2026-11-20 16:22:18 - mirrorflix_backend - INFO - Fetched page 99: 50 total, 50 new (cumulative: 4950)
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - Fetched page 100: 50 total, 50 new (cumulative: 5000)
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - Target total (5000) reached for status RELEASING
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - Total new anime fetched for RELEASING: 5000
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - After RELEASING: 5000 total unique anime
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - Mapping 5000 anime to database schema
+2026-11-20 16:22:22 - mirrorflix_backend - INFO - Syncing 5000 anime to database
+2026-11-20 16:22:25 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Action/animes: Status 200
+2026-11-20 16:22:25 - mirrorflix_backend - INFO - Added 1646 anime to genre: Action
+2026-11-20 16:22:26 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Drama/animes: Status 200
+2026-11-20 16:22:26 - mirrorflix_backend - INFO - Added 763 anime to genre: Drama
+2026-11-20 16:22:27 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Adventure/animes: Status 200
+2026-11-20 16:22:27 - mirrorflix_backend - INFO - Added 342 anime to genre: Adventure
+2026-11-20 16:22:28 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Comedy/animes: Status 200
+2026-11-20 16:22:28 - mirrorflix_backend - INFO - Added 1189 anime to genre: Comedy
+2026-11-20 16:22:28 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Music/animes: Status 200
+2026-11-20 16:22:28 - mirrorflix_backend - INFO - Added 13 anime to genre: Music
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Romance/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 234 anime to genre: Romance
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Fantasy/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 445 anime to genre: Fantasy
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Sports/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 19 anime to genre: Sports
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Horror/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 31 anime to genre: Horror
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mystery/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 30 anime to genre: Mystery
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Ecchi/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 77 anime to genre: Ecchi
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Hentai/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 127 anime to genre: Hentai
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Slice of Life/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 48 anime to genre: Slice of Life
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mahou Shoujo/animes: Status 200
+2026-11-20 16:22:29 - mirrorflix_backend - INFO - Added 3 anime to genre: Mahou Shoujo
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Psychological/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 9 anime to genre: Psychological
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Sci-Fi/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 4 anime to genre: Sci-Fi
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Supernatural/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 7 anime to genre: Supernatural
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Mecha/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 7 anime to genre: Mecha
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Uncategorized/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 4 anime to genre: Uncategorized
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - POST http://103.235.105.231:8001/api/genres/Thriller/animes: Status 200
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Added 2 anime to genre: Thriller
+2026-11-20 16:22:30 - mirrorflix_backend - INFO - Sync completed: {'total_anime': 5000, 'genres_updated': 20, 'entries_added': 5000, 'entries_skipped': 0, 'errors': [], 'by_genre': {'Action': {'added': 1646, 'status': 'success'}, 'Drama': {'added': 763, 'status': 'success'}, 'Adventure': {'added': 342, 'status': 'success'}, 'Comedy': {'added': 1189, 'status': 'success'}, 'Music': {'added': 13, 'status': 'success'}, 'Romance': {'added': 234, 'status': 'success'}, 'Fantasy': {'added': 445, 'status': 'success'}, 'Sports': {'added': 19, 'status': 'success'}, 'Horror': {'added': 31, 'status': 'success'}, 'Mystery': {'added': 30, 'status': 'success'}, 'Ecchi': {'added': 77, 'status': 'success'}, 'Hentai': {'added': 127, 'status': 'success'}, 'Slice of Life': {'added': 48, 'status': 'success'}, 'Mahou Shoujo': {'added': 3, 'status': 'success'}, 'Psychological': {'added': 9, 'status': 'success'}, 'Sci-Fi': {'added': 4, 'status': 'success'}, 'Supernatural': {'added': 7, 'status': 'success'}, 'Mecha': {'added': 7, 'status': 'success'}, 'Uncategorized': {'added': 4, 'status': 'success'}, 'Thriller': {'added': 2, 'status': 'success'}}}
+2026-11-20 16:51:18 - mirrorflix_backend - INFO - Shutting down service...

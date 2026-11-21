@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './MovieCard.css';
 
 // Function to truncate title to 15 characters with dots
@@ -15,18 +15,74 @@ const MovieCard = ({
   onPlay,
   onAddToList,
   onLike,
-  onMore
+  onMore,
+  variant
 }) => {
   const [added, setAdded] = useState(false);
   const [liked, setLiked] = useState(false);
-  
+  const [previewCollapsed, setPreviewCollapsed] = useState(false);
+  const visualButton = useRef(null);
+
+  const openDetails = () => {
+    if (!onClick) return;
+    // The dialog restores focus here when it closes. Keep that focus from expanding the card.
+    setPreviewCollapsed(true);
+    onClick(movie);
+  };
+
+  const previewProps = {
+    'data-preview-collapsed': previewCollapsed || undefined,
+    onPointerMove: (event) => {
+      if (previewCollapsed && event.pointerType !== 'touch') setPreviewCollapsed(false);
+    },
+    onKeyDown: () => {
+      if (previewCollapsed) setPreviewCollapsed(false);
+    },
+    onBlur: (event) => {
+      const next = event.relatedTarget;
+      if (previewCollapsed && next && !event.currentTarget.contains(next) && !next.closest?.('.show-dialog')) {
+        setPreviewCollapsed(false);
+      }
+    },
+  };
+
+  if (variant === 'search') {
+    const image = movie.bannerImage || movie.thumbnail || movie.backdrop || movie.poster;
+    return (
+      <article className="movie-card movie-card--search" {...previewProps}>
+        <button
+          type="button"
+          className="movie-card-search-button"
+          onClick={openDetails}
+          aria-label={`Show details for ${movie.title}`}
+        >
+          <span className="movie-card-search-thumbnail">
+            {image ? (
+              <img
+                className={movie.bannerImage ? 'movie-poster' : 'movie-poster movie-poster--cover'}
+                src={image}
+                alt=""
+                loading="lazy"
+              />
+            ) : (
+              <span className="movie-card-search-placeholder" aria-hidden="true">{movie.title}</span>
+            )}
+          </span>
+          <span className="movie-card-search-title">{movie.title}</span>
+          {movie.year && <small>{movie.year}</small>}
+        </button>
+      </article>
+    );
+  }
+
   const truncatedTitle = truncateTitle(movie.title);
 
   const handlePlay = () => {
     if (onPlay) {
       onPlay(movie);
     } else if (onClick) {
-      onClick(movie);
+      visualButton.current?.focus();
+      openDetails();
     }
   };
 
@@ -54,18 +110,19 @@ const MovieCard = ({
       : [];
 
   return (
-    <article className="movie-card">
+    <article className="movie-card" {...previewProps}>
       <div className="movie-card-expanded">
 
         {/* Movie Image */}
         <button
           type="button"
           className="movie-card-visual"
-          onClick={() => onClick?.(movie)}
+          ref={visualButton}
+          onClick={openDetails}
           aria-label={`Show details for ${movie.title}`}
         >
           <img
-            src={movie.backdrop || movie.poster}
+            src={movie.backdrop || movie.poster || movie.thumbnail}
             alt={movie.title}
             className="movie-poster"
           />
@@ -122,7 +179,7 @@ const MovieCard = ({
            <button
   type="button"
   className="action-button more-button"
-  onClick={() => onMore?.(movie)}
+  onClick={() => (onMore ? onMore(movie) : openDetails())}
   aria-label="More information"
   title="More information"
 >
@@ -163,7 +220,9 @@ const MovieCard = ({
 
               {seasons != null && (
                 <span className="season-info">
-                  {seasons} {Number(seasons) === 1 ? 'Season' : 'Seasons'}
+                  {/^\d+$/.test(String(seasons))
+                    ? `${seasons} ${Number(seasons) === 1 ? 'Season' : 'Seasons'}`
+                    : seasons}
                 </span>
               )}
 

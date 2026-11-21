@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import MovieCard from './MovieCard';
 import './MovieRow.css';
 
-const MovieRow = ({ movies, onSelectMovie, title }) => {
+const MovieRow = ({ movies, onSelectMovie, title, variant }) => {
+  const isSearch = variant === 'search';
   const rowRef = useRef(null);
   const [isLeftVisible, setIsLeftVisible] = useState(false);
   const [isRightVisible, setIsRightVisible] = useState(false);
@@ -14,30 +15,36 @@ const MovieRow = ({ movies, onSelectMovie, title }) => {
     const handleScroll = () => {
       const { scrollLeft, scrollWidth, clientWidth } = row;
       setIsLeftVisible(scrollLeft > 0);
-      setIsRightVisible(scrollLeft < scrollWidth - clientWidth);
+      setIsRightVisible(scrollLeft < scrollWidth - clientWidth - 1);
     };
 
     row.addEventListener('scroll', handleScroll);
+    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(handleScroll) : null;
+    resize?.observe(row);
     handleScroll();
 
-    return () => row.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      row.removeEventListener('scroll', handleScroll);
+      resize?.disconnect();
+    };
+  }, [movies.length]);
 
   const scrollLeft = () => {
-    rowRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    rowRef.current.scrollBy({ left: -300, behavior: isSearch ? 'auto' : 'smooth' });
   };
 
   const scrollRight = () => {
-    rowRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    rowRef.current.scrollBy({ left: 300, behavior: isSearch ? 'auto' : 'smooth' });
   };
 
   return (
-    <div className="movie-row">
+    <div className={isSearch ? 'movie-row movie-row--search' : 'movie-row'}>
       <div className="movie-row-container">
         <button
           className={`scroll-btn scroll-left ${isLeftVisible ? 'visible' : ''}`}
           onClick={scrollLeft}
-          aria-label="Scroll left"
+          aria-label={title ? `Scroll ${title} left` : 'Scroll left'}
+          hidden={isSearch && !isLeftVisible}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -57,14 +64,20 @@ const MovieRow = ({ movies, onSelectMovie, title }) => {
         
         <div className="movie-row-posters" ref={rowRef}>
           {movies.map((movie, index) => (
-            <MovieCard key={movie.id || index} movie={movie} onClick={() => onSelectMovie?.(movie)} />
+            <MovieCard
+              key={movie.id || index}
+              movie={movie}
+              variant={variant}
+              onClick={() => onSelectMovie?.(movie)}
+            />
           ))}
         </div>
         
         <button
           className={`scroll-btn scroll-right ${isRightVisible ? 'visible' : ''}`}
           onClick={scrollRight}
-          aria-label="Scroll right"
+          aria-label={title ? `Scroll ${title} right` : 'Scroll right'}
+          hidden={isSearch && !isRightVisible}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

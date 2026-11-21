@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server/dev.cjs",
+    "dev:frontend": "vite",
+    "streambert": "node server/streambert-server.cjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/catalogServices.test.js tests/streambertServer.test.cjs tests/devPorts.test.cjs tests/showResolver.test.cjs tests/titleMetadata.test.cjs tests/playerSources.test.js tests/aniwaveScraper.test.cjs"
   },
   "repository": {
     "type": "git",

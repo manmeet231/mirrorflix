@@ -1,91 +1,64 @@
-## Usage
+# Integration guide
 
-### 1. Browsing Anime
+The production frontend and optional FastAPI sync service are documented in [frontend.md](frontend.md) and [backend.md](backend.md).
 
-The app automatically loads when started and displays:
-- Featured anime section (static data)
-- Dynamic categorized anime section
+## Active integrations
 
-Users can:
-- Switch between categories using the tabs
-- Click on anime cards to view details
-- See if stream URLs are available
+- The browser reads genre and anime records directly from the external database API configured by `VITE_API_BASE_URL`.
+- Anime search calls AniList directly from the browser.
+- TV-series search calls TVmaze directly from the browser.
+- The FastAPI service on port `8002` is an administrative proxy/synchronization service. It is not required by the current home-page browser code, but it needs the external database API on port `8001`.
 
-### 2. Testing the Integration
+## Streambert playback integration
 
-Run the integration test:
+`src/streambert-anime-test.cjs` contains the HiAnime search, episode extraction, HLS discovery, and media-proxy implementation. `server/streambert-server.cjs` exposes it to the browser under `/api/streambert/*`; `src/streambert-browser-adapter.js` is the browser client. `npm run dev` starts the API on port `3001` together with Vite, which forwards the same-origin API path.
+
+Opening an anime modal retrieves numbered episodes. Selecting one resolves its stream and creates an expiring per-stream proxy session. `VideoPlayer` lazy-loads HLS.js where native HLS is unavailable and attempts autoplay.
+
+The standalone interactive experiment remains available with:
 
 ```bash
-node src/integration-test.js
+node src/streambert-anime-test.cjs
 ```
 
-This will test:
-- AniList API connectivity
-- Streambert functionality
-- Combined service operation
-- Categorization logic
+This depends on third-party site markup and network access. Electron is optional; plain Node uses the built-in HTTP fallback. Browser playback uses the local API/proxy, not a FastAPI endpoint. Production must deploy the Node service and equivalent reverse-proxy forwarding.
 
-### 3. Development
+`src/components/animeDataService.js` retains the older eager-enrichment compatibility workflow. Active modals call `fetchAnimeEpisodes` and `fetchEpisodeStream` on demand instead of resolving streams for every visible card.
 
-#### Adding New Categories
+## Aniwave episode scraper
 
-1. Update the `categorizeAnime` function in `anilistService.js`
-2. Add the new category to the UI in `CategorizedAnimeSection.jsx`
+`src/aniwave-scraper.cjs` resolves an HLS/MP4 source and all available caption tracks from a full Aniwave slug and episode number. It prefers soft-sub servers for subtitle extraction, falls back across compatible servers, and filters thumbnail tracks. It requires authorized use of Aniwave's episode and source endpoints; it does not bypass CAPTCHA, DRM, or third-party host protections.
 
-#### Customizing Streambert
+Run it as a CLI (JSON is written to stdout):
 
-Modify the `getStreamData` function in `animeDataService.js` to:
-- Change the search behavior
-- Add additional stream sources
-- Modify stream resolution options
+```powershell
+node src/aniwave-scraper.cjs one-piece-81553 1
+node src/aniwave-scraper.cjs one-piece-81553 1 --mode dub
+```
 
-## Error Handling
+The local Streambert service also exposes:
 
-The app handles several error scenarios:
+```text
+GET /api/streambert/aniwave/stream?animeId=one-piece-81553&episode=1&mode=sub
+```
 
-1. **API Failures**: Graceful degradation when AniList is unavailable
-2. **Missing Stream Data**: Anime without stream URLs are still displayed
-3. **Network Issues**: Retry logic and error messages
-4. **Invalid Data**: Data validation and filtering
+That endpoint returns the player's normal tokenized same-origin `videoUrl` and `subtitles` fields. SRT captions are converted to WebVTT by the playback proxy. Source URLs and upstream availability can change; offline fixture tests do not guarantee live playback.
 
-## Performance Considerations
+Optional mutual-TLS credentials are loaded only for Aniwave requests, never sent to media hosts or committed to the repository:
 
-1. **Pagination**: Only fetches a limited number of anime initially
-2. **Lazy Loading**: Stream data is fetched on-demand
-3. **Caching**: Stream data could be cached in the future
-4. **Debouncing**: Search operations could be debounced
+- `ANIWAVE_TLS_CERT_PATH` and `ANIWAVE_TLS_KEY_PATH` must be set together.
+- `ANIWAVE_TLS_CA_PATH` optionally identifies a custom CA file.
+- `ANIWAVE_TLS_KEY_PASSWORD` optionally decrypts the private key.
 
-## Future Enhancements
+Keep credential files outside the repository. The CLI reads the project `.env`; the Streambert service already loads it at startup.
 
-1. **User Authentication**: Personalized recommendations and watchlists
-2. **Advanced Search**: Filter by genre, year, status, etc.
-3. **Video Player Integration**: Direct playback in the UI
-4. **Multiple Sources**: Support for additional streaming sites
-5. **Recommendation Engine**: Based on user preferences
+## Verification
 
-## Troubleshooting
+```bash
+npm test
+npm run build
+cd backend
+python -m unittest discover -s tests -v
+```
 
-### Common Issues
-
-1. **Anime not loading**:
-   - Check internet connection
-   - Verify AniList API is accessible
-   - Check console for error messages
-
-2. **Stream data not available**:
-   - Some anime may not be on HiAnime
-   - Check if the anime title matches exactly
-   - Try different search terms
-
-3. **UI not displaying**:
-   - Check React component rendering
-   - Verify CSS is loaded correctly
-   - Check browser console for errors
-
-### Debug Mode
-
-Enable debug logging by modifying the console.log statements in the service files.
-
-## Conclusion
-
-This integration successfully combines AniList's comprehensive anime database with Streambert's scraping capabilities to create a modern, categorized anime streaming interface. The modular design allows for easy extension and customization.
+These tests are offline. They do not validate third-party website availability, CORS, media playback, or a live database.

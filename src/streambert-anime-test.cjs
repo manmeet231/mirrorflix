@@ -43,6 +43,7 @@ const BASE_URL = "https://hianime.at";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const OBFUSCATION_KEY = Buffer.from("otaku-embed-v1", "utf8");
 const SERVER_NAME = "ZokoAnime";
+const SERVER_HOST = "zokoanime.video";
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
 
 // Keep-alive pools
@@ -302,28 +303,40 @@ async function hianimeEpisodes(showId) {
   return episodes;
 }
 
+function selectServerEmbed(html, mode) {
+  for (const chunk of String(html).split("server-item").slice(1)) {
+    if (getAttr(chunk, "data-type") !== mode) continue;
+    const hash = getAttr(chunk, "data-hash");
+    if (!hash) continue;
+
+    try {
+      const decoded = Buffer.from(hash, "base64").toString("utf8").trim();
+      const embed = new URL(decoded);
+      if (!["http:", "https:"].includes(embed.protocol)) continue;
+
+      const serverName = getAttr(chunk, "data-server-name");
+      const isZokoHost = embed.hostname === SERVER_HOST
+        || embed.hostname.endsWith(`.${SERVER_HOST}`);
+      if (serverName !== SERVER_NAME && !isZokoHost) continue;
+
+      return { embedUrl: embed.href, serverName };
+    } catch {
+      // Ignore malformed server entries and try the next compatible server.
+    }
+  }
+  return null;
+}
+
 async function hianimeStream(epId, mode) {
   const body = await hianimeCurl(
     `${BASE_URL}/api/theme/episode/servers?episodeId=${epId}`,
     { referer: BASE_URL + "/" },
   );
   const html = unwrapApiHtml(body);
+  const server = selectServerEmbed(html, mode);
+  if (!server) throw new Error(`No ${SERVER_NAME} server for ${mode}`);
 
-  let hash = null;
-  for (const chunk of html.split("server-item").slice(1)) {
-    if (
-      getAttr(chunk, "data-type") === mode &&
-      getAttr(chunk, "data-server-name") === SERVER_NAME
-    ) {
-      hash = getAttr(chunk, "data-hash");
-      if (hash) break;
-    }
-  }
-  if (!hash) throw new Error(`No ${SERVER_NAME} server for ${mode}`);
-
-  const embedUrl = Buffer.from(hash, "base64").toString("utf8").trim();
-  if (!/^https?:\/\//i.test(embedUrl)) throw new Error("Invalid embed url");
-
+  const { embedUrl } = server;
   const referer = embedUrl.replace(/^(https?:\/\/[^/]*).*$/, "$1/");
   const malMatch = embedUrl.match(/\/mal\/(\d+)\//);
   const malId = malMatch ? parseInt(malMatch[1], 10) : null;
@@ -849,6 +862,7 @@ module.exports = {
   hianimeSearch,
   hianimeEpisodes,
   hianimeStream,
+  selectServerEmbed,
   createPlaybackSession,
   handlePlaybackProxy,
   getPlayerServer,

@@ -15,6 +15,7 @@ export function mapAnimeToCardFormat(anime, streamData = null) {
     matchPercentage: anime.averageScore ? `${anime.averageScore}%` : null,
     ageRating: anime.isAdult ? '18+' : 'U/A',
     seasons: anime.episodes ? `${anime.episodes} Episodes` : null,
+    episodeCount: anime.episodes || null,
     year: anime.seasonYear,
     rating: anime.format,
     duration: anime.duration ? `${anime.duration} min` : null,

@@ -1,6 +1,8 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import VideoPlayer from './VideoPlayer';
-import { fetchAnimeEpisodes, fetchEpisodeStream } from '../streambert-browser-adapter';
+import EmbedPlayer from './EmbedPlayer';
+import { fetchAnimeEpisodes, fetchEpisodeStream, fetchTitleIds } from '../streambert-browser-adapter';
+import { PLAYER_SOURCES, buildPlayerSourceUrl } from '../playerSources';
 import './MovieModal.css';
 
 // Anime episodes load on demand; non-anime flat and seasonList data are flattened.
@@ -25,7 +27,13 @@ export default function MovieModal({
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
   const [error, setError] = useState('');
+  const [selectedSourceId, setSelectedSourceId] = useState('hianime');
+  const [titleIds, setTitleIds] = useState(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [metadataError, setMetadataError] = useState('');
   const isAnime = movie?.mediaType === 'anime' || !movie?.mediaType;
+  const mediaType = isAnime ? 'anime' : showType === 'movie' ? 'movie' : 'series';
+  const expectedEpisodeCount = movie?.episodeCount || Number.parseInt(movie?.seasons, 10) || null;
   
   useEffect(() => {
     if (!isOpen) return;
@@ -35,6 +43,10 @@ export default function MovieModal({
     setEpisodeError('');
     setStreamLoadingId(null);
     setError('');
+    setSelectedSourceId('hianime');
+    setTitleIds(null);
+    setMetadataLoading(false);
+    setMetadataError('');
     setSaved(false);
     setLiked(false);
     streamController.current?.abort();
@@ -60,6 +72,7 @@ export default function MovieModal({
 
     fetchAnimeEpisodes(movie.title, {
       alternativeTitles: movie.synonyms || [],
+      expectedEpisodes: expectedEpisodeCount,
       signal: controller.signal,
     }).then((catalog) => {
       if (!controller.signal.aborted) setEpisodes(catalog.episodes || []);
@@ -70,7 +83,29 @@ export default function MovieModal({
     });
 
     return () => controller.abort();
-  }, [isOpen, movie?.id, movie?.title, isAnime, episodeRetry]);
+  }, [isOpen, movie?.id, movie?.title, isAnime, episodeRetry, expectedEpisodeCount]);
+
+  useEffect(() => {
+    if (!isOpen || !movie) return;
+    const controller = new AbortController();
+    setMetadataLoading(true);
+    setMetadataError('');
+
+    fetchTitleIds(movie.title, {
+      year: movie.year,
+      mediaType,
+      anilistId: isAnime ? movie.id : undefined,
+      signal: controller.signal,
+    }).then((ids) => {
+      if (!controller.signal.aborted) setTitleIds(ids);
+    }).catch((requestError) => {
+      if (!controller.signal.aborted) setMetadataError(requestError.message);
+    }).finally(() => {
+      if (!controller.signal.aborted) setMetadataLoading(false);
+    });
+
+    return () => controller.abort();
+  }, [isOpen, movie?.id, movie?.title, movie?.year, mediaType, isAnime]);
   if (!isOpen || !movie) return null;
   const availableEpisodes = isAnime
     ? episodes
@@ -83,6 +118,68 @@ export default function MovieModal({
     if (!episode) { setError('No episodes are available yet.'); return; }
     if (onPlay) { onPlay(episode, movie); return; }
     if (!showVideoPlayer) { setError('Playback is disabled for this view.'); return; }
+
+    const source = PLAYER_SOURCES.find((item) => item.id === selectedSourceId);
+    if (source && source.id !== 'hianime') {
+      const episodeNumber = Number(episode.number) || 1;
+      const controller = new AbortController();
+      streamController.current?.abort();
+      streamController.current = controller;
+      setStreamLoadingId(episode.id || episodeNumber);
+
+      try {
+        let ids = titleIds;
+        let initialUrl = buildPlayerSourceUrl(source, {
+          mediaType,
+          ...ids,
+          anilistId: isAnime ? movie.id : ids?.anilistId,
+          season: 1,
+          episode: episodeNumber,
+        });
+
+        if (!initialUrl && !ids) {
+          ids = await fetchTitleIds(movie.title, {
+            year: movie.year,
+            mediaType,
+            anilistId: isAnime ? movie.id : undefined,
+            signal: controller.signal,
+          });
+          if (controller.signal.aborted) return;
+          setTitleIds(ids);
+        }
+
+        const embedUrl = initialUrl || buildPlayerSourceUrl(source, {
+          mediaType,
+          ...ids,
+          season: 1,
+          episode: episodeNumber,
+        });
+        if (!embedUrl) {
+          throw new Error(
+            source.disabledReason
+              || `${source.label} does not support this title with the available identifiers.`,
+          );
+        }
+
+        setPlaying({
+          ...episode,
+          id: episode.id || `${source.id}-${episodeNumber}`,
+          title: episode.title || `Episode ${episodeNumber}`,
+          embedUrl,
+          sourceLabel: source.label,
+          subtitles: [],
+        });
+      } catch (requestError) {
+        if (!controller.signal.aborted) setError(requestError.message);
+      } finally {
+        if (streamController.current === controller) {
+          streamController.current = null;
+          setStreamLoadingId(null);
+        }
+      }
+      return;
+    }
+
     if (episode.videoUrl) { setPlaying(episode); return; }
 
     if (isAnime && episode.id) {
@@ -162,12 +259,21 @@ export default function MovieModal({
         </header>
         <div className="show-body">
           {showVideoPlayer && playing && (
-            <VideoPlayer 
-              key={`${playing.id ?? playing.title}-${playing.videoUrl}`}
-              episode={playing} 
-              movie={movie} 
-              onClose={() => setPlaying(null)} 
-            />
+            playing.embedUrl ? (
+              <EmbedPlayer
+                key={`${playing.id ?? playing.title}-${playing.embedUrl}`}
+                episode={playing}
+                movie={movie}
+                onClose={() => setPlaying(null)}
+              />
+            ) : (
+              <VideoPlayer
+                key={`${playing.id ?? playing.title}-${playing.videoUrl}`}
+                episode={playing}
+                movie={movie}
+                onClose={() => setPlaying(null)}
+              />
+            )
           )}
           {error && <p role="status" className="show-notice">{error}</p>}
           <div className="show-details">
@@ -203,6 +309,25 @@ export default function MovieModal({
             <section className="show-episodes" aria-label="Episodes">
               <div className="show-episode-header">
                 <h2>Episodes</h2>
+                <select
+                  className="show-source-picker"
+                  value={selectedSourceId}
+                  onChange={(event) => setSelectedSourceId(event.target.value)}
+                  aria-label="Playback source"
+                >
+                  {PLAYER_SOURCES.map((source) => (
+                    <option
+                      key={source.id}
+                      value={source.id}
+                      disabled={Boolean(source.disabledReason)
+                        || (source.movieOnly && mediaType !== 'movie')}
+                    >
+                      {source.label}
+                      {source.note ? ` · ${source.note}` : ''}
+                      {source.disabledReason ? ' · unavailable' : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
               {isAnime && episodesLoading && <p role="status">Loading episodes…</p>}
               {isAnime && episodeError && (

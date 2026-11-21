@@ -14,12 +14,27 @@ async function requestStreambert(path, { signal, ...options } = {}) {
   return payload;
 }
 
-export async function fetchAnimeEpisodes(title, { alternativeTitles = [], signal } = {}) {
+export async function fetchAnimeEpisodes(title, { alternativeTitles = [], expectedEpisodes, signal } = {}) {
   const params = new URLSearchParams({ title });
   for (const alternative of alternativeTitles) {
     if (alternative) params.append('alternativeTitles', alternative);
   }
+  if (Number.isInteger(expectedEpisodes) && expectedEpisodes > 0) {
+    params.set('expectedEpisodes', String(expectedEpisodes));
+  }
   return requestStreambert(`/episodes?${params}`, { signal });
+}
+
+export async function fetchTitleIds(title, {
+  year,
+  mediaType = 'anime',
+  anilistId,
+  signal,
+} = {}) {
+  const params = new URLSearchParams({ title, mediaType });
+  if (year) params.set('year', String(year));
+  if (anilistId) params.set('anilistId', String(anilistId));
+  return requestStreambert(`/title-ids?${params}`, { signal });
 }
 
 export async function fetchEpisodeStream(episodeId, { mode = 'sub', signal } = {}) {

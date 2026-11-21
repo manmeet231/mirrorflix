@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const scraper = require('../src/streambert-anime-test.cjs');
 const { createStreambertServer, selectShow } = require('../server/streambert-server.cjs');
+const { selectServerEmbed } = require('../src/streambert-anime-test.cjs');
 
 async function startServer(t, overrides = {}) {
   const client = {
@@ -38,6 +39,27 @@ test('selectShow prefers exact alternative titles over the first result', () => 
     { id: 'third', title: 'Mob Psycho 100 III' },
   ];
   assert.equal(selectShow(results, 'Unknown', ['Mob Psycho 100 III']).id, 'third');
+});
+
+test('server selection accepts a renamed label for the compatible ZokoAnime host', () => {
+  const embedUrl = 'https://zokoanime.video/stream/mal/62653/1/sub';
+  const hash = Buffer.from(embedUrl).toString('base64');
+  const html = `<div class="item server-item" data-type="sub"
+    data-server-name="HD-1" data-hash="${hash}"></div>`;
+
+  assert.deepEqual(selectServerEmbed(html, 'sub'), {
+    embedUrl,
+    serverName: 'HD-1',
+  });
+  assert.equal(selectServerEmbed(html, 'dub'), null);
+});
+
+test('server selection rejects unrelated embed hosts', () => {
+  const hash = Buffer.from('https://unrelated.example/stream/1').toString('base64');
+  const html = `<div class="server-item" data-type="sub"
+    data-server-name="HD-1" data-hash="${hash}"></div>`;
+
+  assert.equal(selectServerEmbed(html, 'sub'), null);
 });
 
 test('episodes endpoint resolves a show and returns sorted numbered episodes', async (t) => {

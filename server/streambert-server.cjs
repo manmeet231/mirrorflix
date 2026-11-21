@@ -1,25 +1,25 @@
 const http = require("node:http");
+const path = require("node:path");
+
+try {
+  process.loadEnvFile?.(path.resolve(__dirname, "..", ".env"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+
 const scraper = require("../src/streambert-anime-test.cjs");
+const { createTitleMetadata } = require("./titleMetadata.cjs");
+
+const {
+  extractSeason,
+  normalizeTitle,
+  resolveShowEpisodes,
+  selectShow,
+  stripSeason,
+} = require("./showResolver.cjs");
 
 const API_PREFIX = "/api/streambert";
 const DEFAULT_PORT = 3001;
-
-function normalizeTitle(value) {
-  return String(value || "")
-    .normalize("NFKD")
-    .toLocaleLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
-}
-
-function selectShow(results, title, alternativeTitles = []) {
-  const wanted = new Set(
-    [title, ...alternativeTitles].map(normalizeTitle).filter(Boolean),
-  );
-  return results.find((result) =>
-    [result.title, result.jname].some((name) => wanted.has(normalizeTitle(name)))
-  ) || results[0];
-}
 
 function sendJson(res, status, payload) {
   if (res.headersSent) return;
@@ -43,7 +43,10 @@ function getRequiredParam(url, name) {
   return value;
 }
 
-function createStreambertServer(scraperClient = scraper) {
+function createStreambertServer(
+  scraperClient = scraper,
+  titleMetadata = createTitleMetadata(),
+) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://127.0.0.1");
 
@@ -60,6 +63,23 @@ function createStreambertServer(scraperClient = scraper) {
 
       if (url.pathname === `${API_PREFIX}/proxy`) {
         await scraperClient.handlePlaybackProxy(req, res, url);
+        return;
+      }
+
+      if (url.pathname === `${API_PREFIX}/title-ids`) {
+        const title = getRequiredParam(url, "title");
+        const mediaType = url.searchParams.get("mediaType") || "anime";
+        if (!["anime", "series", "movie"].includes(mediaType)) {
+          sendJson(res, 400, { error: "mediaType must be anime, series, or movie." });
+          return;
+        }
+        const ids = await titleMetadata.resolve({
+          title,
+          mediaType,
+          year: url.searchParams.get("year") || undefined,
+          anilistId: url.searchParams.get("anilistId") || undefined,
+        });
+        sendJson(res, 200, ids);
         return;
       }
 
@@ -80,14 +100,30 @@ function createStreambertServer(scraperClient = scraper) {
 
         const title = getRequiredParam(url, "title");
         const alternativeTitles = url.searchParams.getAll("alternativeTitles");
-        const results = await scraperClient.hianimeSearch(title);
+        const expectedEpisodes = Number(url.searchParams.get("expectedEpisodes")) || null;
+        let results = await scraperClient.hianimeSearch(title);
+
+        if (extractSeason(title)) {
+          const baseTitle = stripSeason(title);
+          if (baseTitle && baseTitle !== normalizeTitle(title)) {
+            try {
+              results = [...results, ...await scraperClient.hianimeSearch(baseTitle)];
+            } catch {
+              // The original search results can still provide a usable fallback.
+            }
+          }
+        }
+
         if (!results.length) {
           sendJson(res, 404, { error: `No HiAnime results found for ${title}.` });
           return;
         }
 
-        const show = selectShow(results, title, alternativeTitles);
-        const episodes = await scraperClient.hianimeEpisodes(show.id);
+        const { show, episodes } = await resolveShowEpisodes(results, {
+          title,
+          alternativeTitles,
+          expectedEpisodes,
+        }, scraperClient.hianimeEpisodes);
         episodes.sort((left, right) =>
           Number(left.number) - Number(right.number)
           || left.number.localeCompare(right.number, undefined, { numeric: true })

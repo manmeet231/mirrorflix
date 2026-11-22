@@ -411,6 +411,14 @@ function jsonForScript(v) {
     .replace(new RegExp("[\\u2028\\u2029]", "g"), "");
 }
 
+function isPlaylistRequest(targetUrl, contentType = "") {
+  return /\.m3u8(?:[?&#]|$)/i.test(String(targetUrl)) || /mpegurl/i.test(contentType);
+}
+
+function isPlaylistText(value) {
+  return String(value).trimStart().startsWith("#EXTM3U");
+}
+
 function rewritePlaylist(text, playlistUrl, token = _serverToken, prefix = "/proxy") {
   const abs = (u) => new URL(u, playlistUrl).href;
   return text
@@ -518,9 +526,34 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
       }
 
       const contentType = String(proxyRes.headers["content-type"] || "");
-      const isPlaylist =
-        /\.m3u8(\?|$)/i.test(targetUrl.pathname + targetUrl.search) ||
-        /mpegurl/i.test(contentType);
+      if (status >= 400) {
+        console.warn(`[proxy] ${targetUrl.hostname} returned HTTP ${status} (${contentType || "unknown content type"})`);
+      }
+      const writePlaylist = (chunks) => {
+        const text = Buffer.concat(chunks).toString("utf8");
+        let out = text;
+        try {
+          if (isPlaylistText(text)) {
+            out = rewritePlaylist(
+              text,
+              target,
+              session.token || _serverToken,
+              session.prefix || "/proxy",
+            );
+          }
+        } catch {
+          res.writeHead(502);
+          res.end();
+          return;
+        }
+        res.writeHead(200, {
+          "Content-Type": "application/vnd.apple.mpegurl",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+        });
+        res.end(out);
+      };
+      const isPlaylist = isPlaylistRequest(targetUrl.pathname + targetUrl.search, contentType);
 
       if (isPlaylist && status === 200) {
         const chunks = [];
@@ -539,28 +572,7 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
             res.end();
             return;
           }
-          const text = Buffer.concat(chunks).toString("utf8");
-          let out = text;
-          try {
-            if (text.trimStart().startsWith("#EXTM3U")) {
-              out = rewritePlaylist(
-                text,
-                target,
-                session.token || _serverToken,
-                session.prefix || "/proxy",
-              );
-            }
-          } catch {
-            res.writeHead(502);
-            res.end();
-            return;
-          }
-          res.writeHead(200, {
-            "Content-Type": "application/vnd.apple.mpegurl",
-            "Cache-Control": "no-store",
-            "X-Content-Type-Options": "nosniff",
-          });
-          res.end(out);
+          writePlaylist(chunks);
         });
         proxyRes.on("error", () => {
           if (!res.headersSent) res.writeHead(502);
@@ -617,15 +629,69 @@ async function proxyRequest(target, req, res, hops = 0, session = {}) {
       }
       passHeaders["Cache-Control"] = "no-store";
       passHeaders["X-Content-Type-Options"] = "nosniff";
-      res.writeHead(status, passHeaders);
-      proxyRes.pipe(res);
+      const forward = (chunks = []) => {
+        res.writeHead(status, passHeaders);
+        for (const chunk of chunks) res.write(chunk);
+        proxyRes.pipe(res);
+      };
+
+      const shouldInspect = status === 200
+        && (!contentType || /(?:image\/jpeg|application\/octet-stream|text\/)/i.test(contentType));
+      if (shouldInspect) {
+        const chunks = [];
+        let size = 0;
+        let detectedPlaylist = false;
+        let forwarded = false;
+        proxyRes.on("data", (chunk) => {
+          if (forwarded) return;
+          if (chunks.length === 0) {
+            detectedPlaylist = isPlaylistText(chunk);
+            if (!detectedPlaylist) {
+              chunks.push(chunk);
+              forwarded = true;
+              forward(chunks);
+              return;
+            }
+          }
+          size += chunk.length;
+          if (size > MAX_TEXT_BYTES) {
+            proxyReq.destroy(new Error("playlist response too large"));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        proxyRes.on("end", () => {
+          if (forwarded) return;
+          if (!detectedPlaylist) {
+            forward(chunks);
+            return;
+          }
+          if (size > MAX_TEXT_BYTES) {
+            res.writeHead(502);
+            res.end();
+            return;
+          }
+          writePlaylist(chunks);
+        });
+        proxyRes.on("error", () => {
+          if (!res.headersSent) res.writeHead(502);
+          res.end();
+        });
+        return;
+      }
+
+      forward();
     },
   );
-  proxyReq.on("error", () => {
-    if (!res.headersSent) res.writeHead(502);
-    res.end();
+  proxyReq.on("error", (error) => {
+    const timedOut = error.message === "upstream timeout";
+    console.warn(`[proxy] ${targetUrl.hostname}: ${error.message}`);
+    if (!res.headersSent) {
+      res.writeHead(timedOut ? 504 : 502, { "Content-Type": "text/plain; charset=utf-8" });
+    }
+    res.end(timedOut ? "Upstream media request timed out." : "Upstream media request failed.");
   });
-  proxyReq.setTimeout(20000, () => proxyReq.destroy());
+  proxyReq.setTimeout(20000, () => proxyReq.destroy(new Error("upstream timeout")));
   res.on("close", () => proxyReq.destroy());
   proxyReq.end();
 }
@@ -913,6 +979,8 @@ module.exports = {
   hianimeEpisodes,
   hianimeStream,
   selectServerEmbed,
+  isPlaylistRequest,
+  isPlaylistText,
   convertSrtToVtt,
   createPlaybackSession,
   handlePlaybackProxy,

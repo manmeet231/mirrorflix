@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { describeHlsError, describeMediaError } from '../playbackErrors';
 import './VideoPlayer.css';
 
 function PlayerIcon({ name }) {
@@ -19,7 +20,7 @@ export function formatTime(seconds) {
   return `${hours ? `${hours}:` : ''}${String(Math.floor(total / 60) % 60).padStart(hours ? 2 : 1, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-export default function VideoPlayer({ episode, movie, onClose }) {
+export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
   const dialog = useRef(null);
   const video = useRef(null);
   const surface = useRef(null);
@@ -75,8 +76,14 @@ export default function VideoPlayer({ episode, movie, onClose }) {
           hls = new Hls({ autoStartLoad: true });
           hls.on(Hls.Events.ERROR, (_, data) => {
             if (!data.fatal) return;
+            console.error('[player] Fatal HLS error', {
+              type: data.type,
+              details: data.details,
+              status: data.response?.code || null,
+              message: data.error?.message || '',
+            });
             setStatus('error');
-            setError('The episode stream could not be loaded. Check the connection or try again.');
+            setError(describeHlsError(data));
             setControlsVisible(true);
           });
           hls.attachMedia(media);
@@ -89,8 +96,9 @@ export default function VideoPlayer({ episode, movie, onClose }) {
 
     playerDialog.showModal();
     playerDialog.focus();
-    attachSource().catch(() => {
+    attachSource().catch((failure) => {
       if (cancelled) return;
+      console.error('[player] Initialization failed', { message: failure.message });
       setStatus('error');
       setError('The video player could not be initialized. Please try again.');
     });
@@ -125,6 +133,7 @@ export default function VideoPlayer({ episode, movie, onClose }) {
         setStatus('ready');
         setNotice('Press Play to start watching.');
       } else if (failure.name !== 'AbortError') {
+        console.error('[player] Playback rejected', { name: failure.name, message: failure.message });
         setStatus('error');
         setError('This video could not be played. Check the connection or try another source.');
       }
@@ -179,7 +188,10 @@ export default function VideoPlayer({ episode, movie, onClose }) {
       video.current.muted = false;
     }
   }
-  function retry() { setRetryCount((count) => count + 1); }
+  function retry() {
+    if (onRetry) onRetry();
+    else setRetryCount((count) => count + 1);
+  }
 
   return (
     <dialog ref={dialog} tabIndex={-1} className={`vp-dialog ${controlsVisible || paused || status === 'error' ? '' : 'vp-idle'}`}
@@ -207,7 +219,16 @@ export default function VideoPlayer({ episode, movie, onClose }) {
         onSeeked={() => setStatus('ready')}
         onEnded={() => { setStatus('ended'); setPaused(true); setControlsVisible(true); }}
         onVolumeChange={() => { setVolume(video.current.volume); setMuted(video.current.muted); }}
-        onError={() => { setStatus('error'); setError('Unable to load this video. Check your connection or try again.'); setControlsVisible(true); }}
+        onError={() => {
+          const code = video.current?.error?.code;
+          console.error('[player] Media element error', {
+            code: code || null,
+            message: video.current?.error?.message || '',
+          });
+          setStatus('error');
+          setError(describeMediaError(code));
+          setControlsVisible(true);
+        }}
         onLoadedData={() => { if (video.current.paused) startPlayback(); }}>
         {episode.subtitles?.map((track) => <track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label} default={track.default} />)}
       </video>

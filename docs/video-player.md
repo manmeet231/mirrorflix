@@ -60,6 +60,13 @@ touch or keyboard interaction. Focused controls remain visible. Autoplay is
 attempted with audio; when blocked, a user-operated Play button remains available.
 Like/My List persistence and progress persistence are outside this change.
 
+Playback errors distinguish network/proxy failures, expired or missing sources,
+and unsupported media. Sanitized HLS and media diagnostics are written to the
+browser console; proxy warnings omit signed query strings. Try again closes the
+failed player and resolves a fresh provider stream rather than reusing the old
+signed URL. Playlist detection accepts `.m3u8` URLs with query parameters so all
+variant, key, and segment URLs remain on the same-origin playback proxy.
+
 ## Deployment
 
 Anime playback requires the Node Streambert service and same-origin API forwarding; `npm run dev` starts both locally. Production deployment must provision that service separately. FastAPI and the database schema are unchanged.

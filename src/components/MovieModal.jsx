@@ -1,8 +1,14 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import VideoPlayer from './VideoPlayer';
 import EmbedPlayer from './EmbedPlayer';
-import { fetchAnimeEpisodes, fetchEpisodeStream, fetchTitleIds } from '../streambert-browser-adapter';
-import { PLAYER_SOURCES, buildPlayerSourceUrl } from '../playerSources';
+import {
+  fetchAnimeEpisodes,
+  fetchAniwaveEpisodes,
+  fetchAniwaveEpisodeStream,
+  fetchEpisodeStream,
+  fetchTitleIds,
+} from '../streambert-browser-adapter';
+import { PLAYER_SOURCES, buildPlayerSourceUrl, requiresTitleMetadata } from '../playerSources';
 import './MovieModal.css';
 
 // Anime episodes load on demand; non-anime flat and seasonList data are flattened.
@@ -27,7 +33,8 @@ export default function MovieModal({
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
   const [error, setError] = useState('');
-  const [selectedSourceId, setSelectedSourceId] = useState('hianime');
+  const [selectedSourceId, setSelectedSourceId] = useState('aniwave');
+  const [episodeShowId, setEpisodeShowId] = useState(null);
   const [titleIds, setTitleIds] = useState(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState('');
@@ -43,7 +50,8 @@ export default function MovieModal({
     setEpisodeError('');
     setStreamLoadingId(null);
     setError('');
-    setSelectedSourceId('hianime');
+    setSelectedSourceId(isAnime ? 'aniwave' : 'hianime');
+    setEpisodeShowId(null);
     setTitleIds(null);
     setMetadataLoading(false);
     setMetadataError('');
@@ -67,15 +75,20 @@ export default function MovieModal({
   useEffect(() => {
     if (!isOpen || !movie || !isAnime) return;
     const controller = new AbortController();
+    const loadEpisodes = selectedSourceId === 'aniwave' ? fetchAniwaveEpisodes : fetchAnimeEpisodes;
+    setEpisodes([]);
+    setEpisodeShowId(null);
     setEpisodesLoading(true);
     setEpisodeError('');
 
-    fetchAnimeEpisodes(movie.title, {
+    loadEpisodes(movie.title, {
       alternativeTitles: movie.synonyms || [],
       expectedEpisodes: expectedEpisodeCount,
       signal: controller.signal,
     }).then((catalog) => {
-      if (!controller.signal.aborted) setEpisodes(catalog.episodes || []);
+      if (controller.signal.aborted) return;
+      setEpisodes(catalog.episodes || []);
+      setEpisodeShowId(selectedSourceId === 'aniwave' ? catalog.show?.id || null : null);
     }).catch((requestError) => {
       if (!controller.signal.aborted) setEpisodeError(requestError.message);
     }).finally(() => {
@@ -83,10 +96,16 @@ export default function MovieModal({
     });
 
     return () => controller.abort();
-  }, [isOpen, movie?.id, movie?.title, isAnime, episodeRetry, expectedEpisodeCount]);
+  }, [isOpen, movie?.id, movie?.title, isAnime, episodeRetry, expectedEpisodeCount, selectedSourceId]);
 
   useEffect(() => {
     if (!isOpen || !movie) return;
+    const source = PLAYER_SOURCES.find((item) => item.id === selectedSourceId);
+    if (!requiresTitleMetadata(source)) {
+      setMetadataLoading(false);
+      setMetadataError('');
+      return;
+    }
     const controller = new AbortController();
     setMetadataLoading(true);
     setMetadataError('');
@@ -105,7 +124,7 @@ export default function MovieModal({
     });
 
     return () => controller.abort();
-  }, [isOpen, movie?.id, movie?.title, movie?.year, mediaType, isAnime]);
+  }, [isOpen, movie?.id, movie?.title, movie?.year, mediaType, isAnime, selectedSourceId]);
   if (!isOpen || !movie) return null;
   const availableEpisodes = isAnime
     ? episodes
@@ -120,7 +139,7 @@ export default function MovieModal({
     if (!showVideoPlayer) { setError('Playback is disabled for this view.'); return; }
 
     const source = PLAYER_SOURCES.find((item) => item.id === selectedSourceId);
-    if (source && source.id !== 'hianime') {
+    if (source && !source.nativeAnime) {
       const episodeNumber = Number(episode.number) || 1;
       const controller = new AbortController();
       streamController.current?.abort();
@@ -189,7 +208,12 @@ export default function MovieModal({
       setStreamLoadingId(episode.id);
 
       try {
-        const source = await fetchEpisodeStream(episode.id, { signal: controller.signal });
+        if (selectedSourceId === 'aniwave' && !episodeShowId) {
+          throw new Error('The Aniwave show is not resolved yet. Please try again.');
+        }
+        const source = selectedSourceId === 'aniwave'
+          ? await fetchAniwaveEpisodeStream(episodeShowId, episode.number, { signal: controller.signal })
+          : await fetchEpisodeStream(episode.id, { signal: controller.signal });
         if (controller.signal.aborted) return;
         setPlaying({
           ...episode,
@@ -222,6 +246,15 @@ export default function MovieModal({
     onClose();
   };
   
+  function changeSource(sourceId) {
+    streamController.current?.abort();
+    streamController.current = null;
+    setStreamLoadingId(null);
+    setPlaying(null);
+    setError('');
+    setSelectedSourceId(sourceId);
+  }
+
   const getShowTypeText = () => {
     if (showType === 'movie') return 'ALTERBUCKET · MOVIE';
     if (showType === 'documentary') return 'ALTERBUCKET · DOCUMENTARY';
@@ -272,6 +305,10 @@ export default function MovieModal({
                 episode={playing}
                 movie={movie}
                 onClose={() => setPlaying(null)}
+                onRetry={() => {
+                  setPlaying(null);
+                  play(playing);
+                }}
               />
             )
           )}
@@ -312,7 +349,7 @@ export default function MovieModal({
                 <select
                   className="show-source-picker"
                   value={selectedSourceId}
-                  onChange={(event) => setSelectedSourceId(event.target.value)}
+                  onChange={(event) => changeSource(event.target.value)}
                   aria-label="Playback source"
                 >
                   {PLAYER_SOURCES.map((source) => (
@@ -320,7 +357,8 @@ export default function MovieModal({
                       key={source.id}
                       value={source.id}
                       disabled={Boolean(source.disabledReason)
-                        || (source.movieOnly && mediaType !== 'movie')}
+                        || (source.movieOnly && mediaType !== 'movie')
+                        || (source.id === 'aniwave' && !isAnime)}
                     >
                       {source.label}
                       {source.note ? ` · ${source.note}` : ''}

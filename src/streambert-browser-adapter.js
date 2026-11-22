@@ -25,6 +25,22 @@ export async function fetchAnimeEpisodes(title, { alternativeTitles = [], expect
   return requestStreambert(`/episodes?${params}`, { signal });
 }
 
+export async function fetchAniwaveEpisodes(title, { alternativeTitles = [], expectedEpisodes, signal } = {}) {
+  const params = new URLSearchParams({ title });
+  for (const alternative of alternativeTitles) {
+    if (alternative) params.append('alternativeTitles', alternative);
+  }
+  if (Number.isInteger(expectedEpisodes) && expectedEpisodes > 0) {
+    params.set('expectedEpisodes', String(expectedEpisodes));
+  }
+  return requestStreambert(`/aniwave/episodes?${params}`, { signal });
+}
+
+export async function fetchAniwaveEpisodeStream(animeId, episode, { mode = 'sub', signal } = {}) {
+  const params = new URLSearchParams({ animeId, episode: String(episode), mode });
+  return requestStreambert(`/aniwave/stream?${params}`, { signal });
+}
+
 export async function fetchTitleIds(title, {
   year,
   mediaType = 'anime',

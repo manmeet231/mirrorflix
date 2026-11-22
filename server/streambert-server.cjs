@@ -141,6 +141,47 @@ function createStreambertServer(
         return;
       }
 
+      if (url.pathname === `${API_PREFIX}/aniwave/episodes`) {
+        const title = getRequiredParam(url, "title");
+        const alternativeTitles = url.searchParams.getAll("alternativeTitles");
+        const expectedEpisodes = Number(url.searchParams.get("expectedEpisodes")) || null;
+        let results = await aniwaveClient.aniwaveSearch(title);
+
+        if (extractSeason(title)) {
+          const baseTitle = stripSeason(title);
+          if (baseTitle && baseTitle !== normalizeTitle(title)) {
+            try {
+              results = [...results, ...await aniwaveClient.aniwaveSearch(baseTitle)];
+            } catch {
+              // The original search results can still provide a usable fallback.
+            }
+          }
+        }
+
+        if (!results.length) {
+          sendJson(res, 404, { error: `No Aniwave results found for ${title}.` });
+          return;
+        }
+        const { show, episodes } = await resolveShowEpisodes(results, {
+          title,
+          alternativeTitles,
+          expectedEpisodes,
+        }, aniwaveClient.aniwaveEpisodes);
+        episodes.sort((left, right) =>
+          Number(left.number) - Number(right.number)
+          || left.number.localeCompare(right.number, undefined, { numeric: true })
+        );
+        sendJson(res, 200, {
+          show,
+          episodes: episodes.map((episode) => ({
+            id: episode.epId,
+            number: episode.number,
+            title: `Episode ${episode.number}`,
+          })),
+        });
+        return;
+      }
+
       if (url.pathname === `${API_PREFIX}/aniwave/stream`) {
         const animeId = getRequiredParam(url, "animeId");
         const episode = getRequiredParam(url, "episode");

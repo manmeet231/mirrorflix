@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 
 const scraper = require('../src/streambert-anime-test.cjs');
 const { createStreambertServer, selectShow } = require('../server/streambert-server.cjs');
-const { selectServerEmbed } = require('../src/streambert-anime-test.cjs');
+const { selectServerEmbed, isPlaylistRequest, isPlaylistText } = require('../src/streambert-anime-test.cjs');
 
 async function startServer(t, overrides = {}, aniwaveOverrides = {}) {
   const client = {
@@ -28,6 +28,15 @@ async function startServer(t, overrides = {}, aniwaveOverrides = {}) {
     ...overrides,
   };
   const aniwaveClient = {
+    aniwaveSearch: async () => [
+      { id: 'mob-psycho-100-926', title: 'Mob Psycho 100', jname: 'Mob Psycho 100' },
+      { id: 'mob-psycho-100-iii-917', title: 'Mob Psycho 100 III', jname: 'Mob Psycho 100 III' },
+    ],
+    aniwaveEpisodes: async () => [
+      { epId: '2', number: '10' },
+      { epId: '1', number: '2' },
+      { epId: '3', number: '1' },
+    ],
     scrapeAniwaveEpisode: async (animeId, episode, { mode }) => ({
       animeId,
       episode: String(episode),
@@ -50,6 +59,15 @@ async function startServer(t, overrides = {}, aniwaveOverrides = {}) {
   t.after(() => new Promise((resolve) => server.close(resolve)));
   return `http://127.0.0.1:${server.address().port}/api/streambert`;
 }
+
+test('playlist detection handles m3u8 URLs with query parameters', () => {
+  assert.equal(isPlaylistRequest('/cdn/file?t.m3u8&v.m3u8', 'application/octet-stream'), true);
+  assert.equal(isPlaylistRequest('/cdn/file/master.m3u8?token=secret', ''), true);
+  assert.equal(isPlaylistRequest('/cdn/file/segment-1.ts', 'video/mp2t'), false);
+  assert.equal(isPlaylistRequest('/cdn/file/playlist', 'application/vnd.apple.mpegurl'), true);
+  assert.equal(isPlaylistText(Buffer.from('  #EXTM3U\n#EXTINF:10,')), true);
+  assert.equal(isPlaylistText(Buffer.from([0x47, 0x40, 0x11, 0x10])), false);
+});
 
 test('selectShow prefers exact alternative titles over the first result', () => {
   const results = [
@@ -103,6 +121,26 @@ test('stream endpoint returns same-origin proxied video and subtitle sources', a
   assert.equal(payload.subtitles.length, 1);
   assert.match(payload.subtitles[0].src, /^\/api\/streambert\/proxy/);
   assert.equal(payload.subtitles[0].default, true);
+});
+
+test('Aniwave episode endpoint resolves a show and returns sorted episodes', async (t) => {
+  const base = await startServer(t);
+  const params = new URLSearchParams({ title: 'Mob Psycho 100 III' });
+  const response = await fetch(`${base}/aniwave/episodes?${params}`);
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.show.id, 'mob-psycho-100-iii-917');
+  assert.deepEqual(payload.episodes.map((episode) => episode.number), ['1', '2', '10']);
+  assert.deepEqual(payload.episodes.map((episode) => episode.id), ['3', '1', '2']);
+});
+
+test('Aniwave episode endpoint reports missing titles', async (t) => {
+  const base = await startServer(t, {}, { aniwaveSearch: async () => [] });
+  const response = await fetch(`${base}/aniwave/episodes?title=Unknown`);
+
+  assert.equal(response.status, 404);
+  assert.match((await response.json()).error, /No Aniwave results/);
 });
 
 test('Aniwave endpoint returns proxied video and every subtitle track', async (t) => {

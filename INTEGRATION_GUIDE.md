@@ -39,8 +39,11 @@ node src/aniwave-scraper.cjs one-piece-81553 1 --mode dub
 The local Streambert service also exposes:
 
 ```text
+GET /api/streambert/aniwave/episodes?title=One%20Piece&expectedEpisodes=1180
 GET /api/streambert/aniwave/stream?animeId=one-piece-81553&episode=1&mode=sub
 ```
+
+The episode endpoint searches Aniwave, matches English/Japanese titles and AniList synonyms through the shared show resolver, and returns the selected slug with numbered episodes. The anime modal uses Aniwave as its default native provider; HiAnime remains selectable as a fallback. Changing providers cancels obsolete catalog/stream requests and reloads the episode list.
 
 That endpoint returns the player's normal tokenized same-origin `videoUrl` and `subtitles` fields. SRT captions are converted to WebVTT by the playback proxy. Source URLs and upstream availability can change; offline fixture tests do not guarantee live playback.
 

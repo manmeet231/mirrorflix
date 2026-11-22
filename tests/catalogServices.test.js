@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { buildGenreRows, fetchGenreByName, fetchGenresFromDB } from '../src/components/dbApiService.js';
 import { mapAnimeToCardFormat } from '../src/components/animeMapper.js';
 import { categorizeAnime } from '../src/components/anilistService.js';
+import { fetchAniwaveEpisodes, fetchAniwaveEpisodeStream } from '../src/streambert-browser-adapter.js';
 
 test('buildGenreRows keeps complete rows and deduplicates normalized IDs', () => {
   const genres = [
@@ -44,6 +45,35 @@ test('database requests validate catalog responses and encode genre names', asyn
     assert.equal(await fetchGenreByName('Slice of Life'), null);
     assert.match(calls[0], /\/api\/genres$/);
     assert.match(calls[1], /\/api\/genres\/Slice%20of%20Life$/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('Aniwave browser adapters encode catalog and stream parameters', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: new URL(url, 'http://localhost'), options });
+    return { ok: true, status: 200, json: async () => ({ episodes: [] }) };
+  };
+
+  try {
+    const signal = new AbortController().signal;
+    await fetchAniwaveEpisodes('One Piece', {
+      alternativeTitles: ['ワンピース'], expectedEpisodes: 1180, signal,
+    });
+    await fetchAniwaveEpisodeStream('one-piece-81553', 1, { signal });
+
+    assert.equal(calls[0].url.pathname, '/api/streambert/aniwave/episodes');
+    assert.equal(calls[0].url.searchParams.get('title'), 'One Piece');
+    assert.equal(calls[0].url.searchParams.get('alternativeTitles'), 'ワンピース');
+    assert.equal(calls[0].url.searchParams.get('expectedEpisodes'), '1180');
+    assert.equal(calls[0].options.signal, signal);
+    assert.equal(calls[1].url.pathname, '/api/streambert/aniwave/stream');
+    assert.equal(calls[1].url.searchParams.get('animeId'), 'one-piece-81553');
+    assert.equal(calls[1].url.searchParams.get('episode'), '1');
+    assert.equal(calls[1].url.searchParams.get('mode'), 'sub');
   } finally {
     globalThis.fetch = originalFetch;
   }

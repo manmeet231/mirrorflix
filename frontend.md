@@ -37,6 +37,8 @@ Vite embeds `VITE_*` values in public browser JavaScript; never put secrets in t
 5. The home view renders a static hero carousel and the completed genre rows. Loading rows are derived directly from configuration rather than duplicated in component state.
 6. Selecting a card normalizes `description` to `synopsis` and genre arrays to display text, then opens `MovieModal`.
 7. A non-empty search query replaces the home view with search results. Live requests begin at two characters after a 450 ms debounce and have an eight-second timeout. Anime and TV-series searches run independently.
+8. Opening an anime modal resolves Aniwave episodes by title/synonyms and uses Aniwave for native playback by default. Selecting HiAnime or an embed provider aborts stale requests and reloads the appropriate episode catalog.
+9. TMDB title metadata is requested only for embed providers that need external identifiers. Native Aniwave and HiAnime playback does not depend on TMDB availability.
 
 The current app does **not** call the FastAPI port-`8002` service. That service is for synchronization and proxy administration; see [backend.md](backend.md).
 

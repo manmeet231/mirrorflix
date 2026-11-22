@@ -44,6 +44,22 @@ test('metadata resolver returns TMDB, IMDb, and AniList identifiers', async () =
   assert.ok(requested.every((url) => url.searchParams.get('api_key') === 'server-only-key'));
 });
 
+test('metadata resolution reports upstream connectivity failures clearly', async () => {
+  const metadata = createTitleMetadata({
+    apiKey: 'server-only-key',
+    fetchImpl: async () => {
+      const error = new Error('fetch failed');
+      error.cause = { code: 'UND_ERR_CONNECT_TIMEOUT' };
+      throw error;
+    },
+  });
+
+  await assert.rejects(
+    metadata.resolve({ title: 'Example' }),
+    (error) => error.status === 503 && /unreachable/.test(error.message),
+  );
+});
+
 test('metadata resolution fails clearly when the server key is missing', async () => {
   const metadata = createTitleMetadata({ apiKey: '' });
   await assert.rejects(

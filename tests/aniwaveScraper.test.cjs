@@ -7,6 +7,8 @@ const {
   loadTlsOptions,
   parseCliArguments,
   parseEpisode,
+  parseEpisodeList,
+  parseSearchResults,
   parseServers,
   selectServers,
 } = require('../src/aniwave-scraper.cjs');
@@ -28,6 +30,13 @@ const SERVER_HTML = `
   <div class="type" data-type="dub"><ul>
     <li data-sv-id="4" data-link-id="dub-link">Vidplay</li>
   </ul></div>`;
+const SEARCH_HTML = `
+  <a class="item" href="/watch/one-piece-81553"><div class="info">
+    <div class="name d-title" data-jp="One Piece">One Piece</div>
+  </div></a>
+  <a class="item" href="/watch/one-piece-gyojin-tou-hen-81989"><div class="info">
+    <div class="name d-title" data-jp="One Piece: Gyojin Tou-hen">One Piece Log: Fish-Man Island Saga</div>
+  </div></a>`;
 const EMBED_URL = 'https://embed.example/embed-0/embed-token?autoPlay=0';
 
 function response(body, status = 200) {
@@ -45,6 +54,10 @@ function createFixture(overrides = {}) {
     calls.push({ url, options });
     if (url.hostname === 'aniwaves.tv' && url.pathname === '/watch/one-piece-81553') {
       return overrides.watchResponse || response(WATCH_HTML);
+    }
+    if (url.pathname === '/ajax/anime/search') {
+      assert.equal(url.searchParams.get('keyword'), 'One Piece');
+      return response(envelope({ html: SEARCH_HTML }));
     }
     if (url.pathname === '/ajax/episode/list/81553') {
       return response(envelope(overrides.episodeHtml || EPISODE_HTML));
@@ -87,6 +100,32 @@ function createFixture(overrides = {}) {
   const scraper = createAniwaveScraper({ requestImpl, validateUrlImpl: async (url) => url });
   return { calls, scraper };
 }
+
+test('Aniwave search and episode catalog expose resolver-compatible results', async () => {
+  const { scraper } = createFixture();
+  const results = await scraper.aniwaveSearch('One Piece');
+  const episodes = await scraper.aniwaveEpisodes('one-piece-81553');
+
+  assert.deepEqual(results, [
+    { id: 'one-piece-81553', title: 'One Piece', jname: 'One Piece' },
+    {
+      id: 'one-piece-gyojin-tou-hen-81989',
+      title: 'One Piece Log: Fish-Man Island Saga',
+      jname: 'One Piece: Gyojin Tou-hen',
+    },
+  ]);
+  assert.deepEqual(episodes, [
+    { epId: '1', number: '1', sub: true, dub: true },
+    { epId: '2', number: '2', sub: true, dub: false },
+  ]);
+});
+
+test('search and episode parsers decode titles and ignore disabled episodes', () => {
+  assert.equal(parseSearchResults(SEARCH_HTML)[1].jname, 'One Piece: Gyojin Tou-hen');
+  const episodes = parseEpisodeList(`${EPISODE_HTML}
+    <a data-ids="81553&amp;eps=3" data-num="3" data-sub="1" data-dub="0" enabled="0">3</a>`);
+  assert.deepEqual(episodes.map((episode) => episode.number), ['1', '2']);
+});
 
 test('scraper resolves the exact episode, soft-sub embed, HLS, and caption tracks', async () => {
   const { calls, scraper } = createFixture();

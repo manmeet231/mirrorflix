@@ -41,10 +41,20 @@ function createTitleMetadata({
         url.searchParams.set(key, String(value));
       }
     }
-    const response = await fetchImpl(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
-    });
+    let response;
+    try {
+      response = await fetchImpl(url, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(12000),
+      });
+    } catch (error) {
+      const metadataError = new Error(
+        "TMDB metadata service is unreachable. Check outbound HTTPS access and try again.",
+      );
+      metadataError.status = 503;
+      metadataError.cause = error;
+      throw metadataError;
+    }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       const error = new Error(`TMDB request failed with HTTP ${response.status}.`);

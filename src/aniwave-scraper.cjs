@@ -69,6 +69,52 @@ function parseWatchPage(html) {
   return { animeId };
 }
 
+function parseSearchResults(html) {
+  const results = [];
+  for (const match of String(html).matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/gi)) {
+    const item = match[0];
+    const tag = item.match(/^<a\b[^>]*>/i)?.[0] || "";
+    if (!/\bitem\b/i.test(getAttr(tag, "class") || "")) continue;
+    const href = getAttr(tag, "href");
+    const id = href?.match(/\/watch\/([^/?#]+)/)?.[1];
+    if (!id || !/^[a-z0-9]+(?:-[a-z0-9]+)*-\d+$/.test(id)) continue;
+    const nameTag = [...item.matchAll(/<div\b[^>]*>/gi)]
+      .map((name) => name[0])
+      .find((name) => /\bname\b/i.test(getAttr(name, "class") || ""));
+    const title = nameTag
+      ? decodeEntities(item.slice(item.indexOf(nameTag) + nameTag.length).replace(/<[^>]*>[\s\S]*/, "").trim())
+      : "";
+    if (!title) continue;
+    results.push({ id, title, jname: getAttr(nameTag, "data-jp") || title });
+  }
+  return results;
+}
+
+function parseEpisodeList(html) {
+  const episodes = [];
+  const seen = new Set();
+  for (const match of String(html).matchAll(/<a\b[^>]*>/gi)) {
+    const tag = match[0];
+    const number = getAttr(tag, "data-num");
+    const ids = getAttr(tag, "data-ids");
+    if (!number || !ids || getAttr(tag, "enabled") === "0") continue;
+    try {
+      const normalized = normalizeEpisode(number);
+      if (seen.has(normalized)) continue;
+      seen.add(normalized);
+      episodes.push({
+        epId: normalized,
+        number: normalized,
+        sub: getAttr(tag, "data-sub") === "1",
+        dub: getAttr(tag, "data-dub") === "1",
+      });
+    } catch {
+      // Ignore non-numeric special entries that cannot be requested by number.
+    }
+  }
+  return episodes;
+}
+
 function parseEpisode(html, wantedEpisode) {
   for (const match of String(html).matchAll(/<a\b[^>]*>/gi)) {
     const tag = match[0];
@@ -460,17 +506,26 @@ function createAniwaveScraper({
     return media;
   }
 
-  async function scrapeAniwaveEpisode(animeIdValue, episodeValue, { mode: modeValue = "sub" } = {}) {
-    const animeId = normalizeAnimeId(animeIdValue);
-    const episode = normalizeEpisode(episodeValue);
-    const mode = normalizeMode(modeValue);
+  async function aniwaveSearch(query) {
+    const keyword = String(query || "").trim();
+    if (!keyword) throw new AniwaveError("A search title is required.", 400);
+    const searchUrl = new URL("/ajax/anime/search", root);
+    searchUrl.searchParams.set("keyword", keyword);
+    const result = await fetchJson(searchUrl, {
+      ajax: true,
+      referer: root.origin + "/",
+      label: "Aniwave search",
+    });
+    return parseSearchResults(typeof result === "string" ? result : result?.html || "");
+  }
+
+  async function fetchEpisodeContext(animeId) {
     const watchUrl = new URL(`/watch/${animeId}`, root).href;
     const watchResponse = await fetchResponse(watchUrl, {
       accept: "text/html",
       label: "Aniwave watch page",
     });
     const watch = parseWatchPage(watchResponse.body);
-
     const episodeUrl = new URL(`/ajax/episode/list/${watch.animeId}`, root);
     episodeUrl.searchParams.set("style", "list");
     const episodeHtml = await fetchJson(episodeUrl, {
@@ -478,6 +533,20 @@ function createAniwaveScraper({
       referer: watchUrl,
       label: "Aniwave episode list",
     });
+    return { episodeHtml, watchUrl };
+  }
+
+  async function aniwaveEpisodes(animeIdValue) {
+    const animeId = normalizeAnimeId(animeIdValue);
+    const { episodeHtml } = await fetchEpisodeContext(animeId);
+    return parseEpisodeList(episodeHtml);
+  }
+
+  async function scrapeAniwaveEpisode(animeIdValue, episodeValue, { mode: modeValue = "sub" } = {}) {
+    const animeId = normalizeAnimeId(animeIdValue);
+    const episode = normalizeEpisode(episodeValue);
+    const mode = normalizeMode(modeValue);
+    const { episodeHtml, watchUrl } = await fetchEpisodeContext(animeId);
     const selectedEpisode = parseEpisode(episodeHtml, episode);
     if (!selectedEpisode) throw new AniwaveError(`Episode ${episode} was not found for ${animeId}.`, 404);
     if (!selectedEpisode.enabled) throw new AniwaveError(`Episode ${episode} is not enabled yet.`, 404);
@@ -518,11 +587,11 @@ function createAniwaveScraper({
     throw new AniwaveError(`No playable ${mode} source was found for episode ${episode}. Last server error: ${lastError?.message || "unknown error"}`, 502);
   }
 
-  return { scrapeAniwaveEpisode };
+  return { aniwaveEpisodes, aniwaveSearch, scrapeAniwaveEpisode };
 }
 
 const defaultScraper = createAniwaveScraper();
-const scrapeAniwaveEpisode = defaultScraper.scrapeAniwaveEpisode;
+const { aniwaveEpisodes, aniwaveSearch, scrapeAniwaveEpisode } = defaultScraper;
 
 function parseCliArguments(argv) {
   if (argv.includes("--help") || argv.includes("-h")) return { help: true };
@@ -570,6 +639,8 @@ if (require.main === module) {
 
 module.exports = {
   AniwaveError,
+  aniwaveEpisodes,
+  aniwaveSearch,
   assertPublicUrl,
   createAniwaveScraper,
   createRequest,
@@ -577,6 +648,8 @@ module.exports = {
   parseApiPayload,
   parseCliArguments,
   parseEpisode,
+  parseEpisodeList,
+  parseSearchResults,
   parseServers,
   parseWatchPage,
   runCli,

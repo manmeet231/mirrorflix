@@ -1,8 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PLAYER_SOURCES, buildPlayerSourceUrl } from '../src/playerSources.js';
+import { PLAYER_SOURCES, buildPlayerSourceUrl, requiresTitleMetadata } from '../src/playerSources.js';
 
 const source = (id) => PLAYER_SOURCES.find((item) => item.id === id);
+
+test('Aniwave and HiAnime are native providers rather than embed URL builders', () => {
+  assert.equal(source('aniwave').nativeAnime, true);
+  assert.equal(source('hianime').nativeAnime, true);
+  assert.equal(requiresTitleMetadata(source('aniwave')), false);
+  assert.equal(requiresTitleMetadata(source('hianime')), false);
+  assert.equal(requiresTitleMetadata(source('vidsrc')), true);
+  assert.equal(buildPlayerSourceUrl(source('aniwave'), {
+    mediaType: 'anime', anilistId: 21, episode: 1,
+  }), null);
+  assert.equal(buildPlayerSourceUrl(source('hianime'), {
+    mediaType: 'anime', anilistId: 21, episode: 1,
+  }), null);
+});
 
 test('Vidnest uses the dedicated AniList route for anime', () => {
   const url = new URL(buildPlayerSourceUrl(source('vidnest'), {

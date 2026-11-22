@@ -1,9 +1,17 @@
 export const PLAYER_SOURCES = [
   {
+    id: 'aniwave',
+    label: 'Aniwave',
+    tag: 'NATIVE',
+    note: 'Native player and subtitles',
+    nativeAnime: true,
+  },
+  {
     id: 'hianime',
     label: 'HiAnime',
     tag: 'NATIVE',
     note: 'Native player and subtitles',
+    nativeAnime: true,
   },
   {
     id: 'vidsrc',
@@ -98,6 +106,10 @@ export const PLAYER_SOURCES = [
   },
 ];
 
+export function requiresTitleMetadata(source) {
+  return Boolean(source && !source.nativeAnime && !source.disabledReason);
+}
+
 export function buildPlayerSourceUrl(source, {
   mediaType = 'anime',
   tmdbId,
@@ -109,7 +121,7 @@ export function buildPlayerSourceUrl(source, {
   language = 'en',
   mode = 'sub',
 } = {}) {
-  if (!source || source.id === 'hianime' || source.disabledReason) return null;
+  if (!source || source.nativeAnime || source.disabledReason) return null;
   if (source.movieOnly && mediaType !== 'movie') return null;
 
   const ids = { tmdb: tmdbId, imdb: imdbId, kinopoisk: kinopoiskId };

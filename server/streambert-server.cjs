@@ -53,6 +53,17 @@ function createStreambertServer(
     const url = new URL(req.url, "http://127.0.0.1");
 
     try {
+      if (url.pathname === "/admolo.txt") {
+        const body = "TPEVEHYW7XRJ1QXQ9K1ZKJ8V52EVUCAK";
+        res.writeHead(200, {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Length": Buffer.byteLength(body),
+          "Cache-Control": "public, max-age=86400",
+        });
+        res.end(body);
+        return;
+      }
+
       if (req.method !== "GET" || !url.pathname.startsWith(`${API_PREFIX}/`)) {
         sendJson(res, 404, { error: "Not found" });
         return;

@@ -49,7 +49,7 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
           document.activeElement !== dialog.current?.querySelector('.vp-back')) {
         setControlsVisible(false);
       }
-    }, 3000);
+    }, 2000);
   }, []);
 
   useEffect(() => {

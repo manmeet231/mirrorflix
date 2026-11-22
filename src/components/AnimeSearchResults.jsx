@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import { fetchAniListAnime } from './anilistService';
 import MovieRow from './MovieRow';
 import { mapAnimeToCardFormat } from './animeMapper';
-import { searchTvShows } from './mediaSearchService';
 import './AnimeSearchResults.css';
 
 const groups = [
-  { id: 'tv', label: 'TV Series', source: 'TVmaze', url: 'https://www.tvmaze.com/', search: searchTvShows },
   { id: 'anime', label: 'Anime', source: 'AniList', url: 'https://anilist.co/', search: searchAnime },
 ];
 

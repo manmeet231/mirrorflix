@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import AnimeSearchResults from './components/AnimeSearchResults';
 import HeroSection from './components/HeroSection';
 import CategorizedAnimeSection from './components/CategorizedAnimeSection';
-import Footer from './components/Footer';
 import MovieModal from './components/MovieModal';
 import { fetchGenreRows } from './components/dbApiService';
 import { GENRE_ROW_LIMIT, TARGET_GENRES } from './catalogConfig';
@@ -69,7 +68,7 @@ export default function App() {
           />
         ) : (
           <>
-            <HeroSection featuredShows={featuredShows} />
+            <HeroSection featuredShows={featuredShows} onSelectMovie={(movie) => setSelectedMovie(normalizeMovie(movie))} />
             <CategorizedAnimeSection
               title="Browse Anime"
               genreRows={genreRows}
@@ -87,7 +86,6 @@ export default function App() {
         isOpen={Boolean(selectedMovie)}
         onClose={() => setSelectedMovie(null)}
       />
-      <Footer />
     </div>
   );
 }

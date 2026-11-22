@@ -26,17 +26,12 @@ const Navbar = ({ searchQuery, onSearchChange }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { id: 'Home', label: 'Home' },
-    { id: 'TV Shows', label: 'TV Shows' },
-    { id: 'Movies', label: 'Movies' },
-    { id: 'My List', label: 'My List' },
-  ];
+  const navItems = [];
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-left">
-        <div className="navbar-logo">MIRRORFLIX</div>
+        <div className="navbar-logo">ALTERBUCKET</div>
         <div className="navbar-center">
           {navItems.map((item) => (
             <button

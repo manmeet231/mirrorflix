@@ -11,6 +11,11 @@ import {
 import { PLAYER_SOURCES, buildPlayerSourceUrl, requiresTitleMetadata } from '../playerSources';
 import './MovieModal.css';
 
+// Strip HTML tags (<br>, </br>, <i>, </i>, etc.) from a string
+function stripHtmlTags(html) {
+  return html.replace(/<[^>]*>/g, '');
+}
+
 // Anime episodes load on demand; non-anime flat and seasonList data are flattened.
 export default function MovieModal({ 
   movie, 
@@ -328,7 +333,7 @@ export default function MovieModal({
                 {movie.rating}
               </p>
               <h2 className="show-synopsis-title">Synopsis</h2>
-              <p className="show-synopsis">{movie.synopsis}</p>
+              <p className="show-synopsis">{stripHtmlTags(movie.synopsis || '')}</p>
               {movie.language && <span className="show-language">{movie.language}</span>}
               {movie.sourceUrl && (
                 <a className="catalog-source-link" href={movie.sourceUrl} target="_blank" rel="noreferrer">

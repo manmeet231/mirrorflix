@@ -2,7 +2,15 @@ import React from 'react';
 import playButton from '../assets/playbutton.svg';
 import './HeroSlide.css';
 
-const HeroSlide = ({ show, isActive }) => {
+const HeroSlide = ({ show, isActive, onSelectMovie }) => {
+  const handlePlay = () => {
+    if (onSelectMovie) onSelectMovie(show);
+  };
+
+  const handleMoreInfo = () => {
+    if (onSelectMovie) onSelectMovie(show);
+  };
+
   return (
     <div className={`hero-slide ${isActive ? 'active' : ''}`}>
       <div 
@@ -22,7 +30,7 @@ const HeroSlide = ({ show, isActive }) => {
           {show.description}
         </p>
         <div className="hero-buttons">
-          <button className="play-btn">
+          <button className="play-btn" onClick={handlePlay}>
             <img
               src={playButton}
               alt="Play"
@@ -30,7 +38,7 @@ const HeroSlide = ({ show, isActive }) => {
             />
             Play
           </button>
-          <button className="more-info-btn">
+          <button className="more-info-btn" onClick={handleMoreInfo}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

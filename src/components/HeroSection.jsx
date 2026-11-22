@@ -7,7 +7,8 @@ const HeroSection = ({
   featuredShows = [], 
   autoPlayDelay = 7000,
   height = '85vh',
-  showControls = true 
+  showControls = true,
+  onSelectMovie 
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -74,6 +75,7 @@ const HeroSection = ({
             key={show.id} 
             show={show} 
             isActive={index === currentSlide}
+            onSelectMovie={onSelectMovie}
           />
         ))}
       </div>

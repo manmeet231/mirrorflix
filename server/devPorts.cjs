@@ -1,3 +1,4 @@
+
 const { spawnSync } = require("node:child_process");
 const net = require("node:net");
 
@@ -31,11 +32,36 @@ function parseNetstatListeners(output, port) {
 
 function getListenerPids(port, platform = process.platform) {
   if (platform === "win32") {
-    return parseNetstatListeners(runCommand("netstat", ["-ano", "-p", "tcp"]), port);
+    return parseNetstatListeners(
+      runCommand("netstat", ["-ano", "-p", "tcp"]),
+      port
+    );
   }
 
-  const output = runCommand("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"]);
-  return [...new Set(output.split(/\s+/).map(Number).filter((pid) => pid > 0))];
+  const result = spawnSync(
+    "lsof",
+    ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"],
+    {
+      encoding: "utf8",
+      windowsHide: true,
+    }
+  );
+
+  if (result.error) throw result.error;
+
+  // Exit status 1 means no matching listener was found.
+  if (result.status === 1) return [];
+
+  if (result.status !== 0) {
+    const detail = (result.stderr || result.stdout || "").trim();
+    throw new Error(detail || `lsof exited with status ${result.status}.`);
+  }
+
+  return [
+    ...new Set(
+      result.stdout.split(/\s+/).map(Number).filter((pid) => pid > 0)
+    ),
+  ];
 }
 
 function terminateProcess(pid, platform = process.platform) {

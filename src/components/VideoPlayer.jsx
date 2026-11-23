@@ -20,12 +20,17 @@ export function formatTime(seconds) {
   return `${hours ? `${hours}:` : ''}${String(Math.floor(total / 60) % 60).padStart(hours ? 2 : 1, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
+export default function VideoPlayer({ episode, movie, onClose, onRetry, initialProgress = null, onProgress }) {
   const dialog = useRef(null);
   const video = useRef(null);
   const surface = useRef(null);
   const hideTimer = useRef(null);
   const fullscreenExitedAt = useRef(0);
+  const onProgressRef = useRef(onProgress);
+  const lastProgressAt = useRef(0);
+  const lastProgressSignature = useRef('');
+  const subtitlePanelOpen = useRef(false);
+  onProgressRef.current = onProgress;
   const titleId = useId();
   const [paused, setPaused] = useState(true);
   const [time, setTime] = useState(0);
@@ -38,19 +43,57 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const resumePosition = Math.max(0, Number(initialProgress?.position) || 0);
+  const canResume = !initialProgress?.completed && resumePosition > 10 &&
+    (!initialProgress?.duration || resumePosition < initialProgress.duration - 30);
+  const [awaitingResume, setAwaitingResume] = useState(canResume);
+  const [subtitleIndex, setSubtitleIndex] = useState(() => episode.subtitles?.findIndex((track) => track.default) ?? -1);
+  const [subtitleText, setSubtitleText] = useState('');
+  const [tracksReady, setTracksReady] = useState(0);
+  const [subtitleSettings, setSubtitleSettings] = useState(false);
+  const [subtitlePreferences, setSubtitlePreferences] = useState(() => {
+    try {
+      return { size: 100, position: 14, ...JSON.parse(window.localStorage.getItem('alterbucket.subtitles') || '{}') };
+    } catch { return { size: 100, position: 14 }; }
+  });
   const isDemo = Boolean(episode.demo);
 
   const reveal = useCallback(() => {
     setControlsVisible(true);
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
-      if (video.current && !video.current.paused &&
-          !dialog.current?.querySelector('.vp-controls')?.contains(document.activeElement) &&
-          document.activeElement !== dialog.current?.querySelector('.vp-back')) {
+      const playerDialog = dialog.current;
+      const activeElement = document.activeElement;
+      const controls = playerDialog?.querySelector('.vp-controls');
+      const volumeHasFocus = playerDialog?.querySelector('.vp-volume')?.contains(activeElement);
+      const keepForKeyboardFocus = (controls?.contains(activeElement) && !volumeHasFocus) ||
+        activeElement === playerDialog?.querySelector('.vp-back');
+      if (video.current && !video.current.paused && !subtitlePanelOpen.current && !keepForKeyboardFocus) {
+        if (playerDialog?.querySelector('.vp-chrome')?.contains(activeElement)) playerDialog.focus();
         setControlsVisible(false);
       }
     }, 2000);
   }, []);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('alterbucket.subtitles', JSON.stringify(subtitlePreferences)); } catch { /* Preferences still work for this session. */ }
+  }, [subtitlePreferences]);
+
+  useEffect(() => {
+    const media = video.current;
+    if (!media) return;
+    const tracks = Array.from(media.textTracks);
+    const updateCues = () => {
+      const cues = subtitleIndex >= 0 ? Array.from(tracks[subtitleIndex]?.activeCues || []) : [];
+      setSubtitleText(cues.map((cue) => cue.text).join('\n'));
+    };
+    tracks.forEach((track, index) => {
+      track.mode = index === subtitleIndex ? 'hidden' : 'disabled';
+      track.oncuechange = index === subtitleIndex ? updateCues : null;
+    });
+    updateCues();
+    return () => { tracks.forEach((track) => { track.oncuechange = null; }); };
+  }, [subtitleIndex, tracksReady, episode.videoUrl]);
 
   useEffect(() => {
     const playerDialog = dialog.current;
@@ -111,6 +154,7 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
     document.addEventListener('fullscreenchange', handleFullscreen);
     return () => {
       cancelled = true;
+      reportProgress(true);
       clearTimeout(hideTimer.current);
       media.pause();
       hls?.destroy();
@@ -123,6 +167,25 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
       if (opener?.isConnected) opener.focus();
     };
   }, [reveal, episode.videoUrl, retryCount]);
+
+  function reportProgress(force = false) {
+    const media = video.current;
+    if (!media || !onProgressRef.current) return;
+    const now = Date.now();
+    if (!force && now - lastProgressAt.current < 5000) return;
+    const position = Number(media.currentTime);
+    const mediaDuration = Number(media.duration);
+    if (!Number.isFinite(position) || (position === 0 && (!Number.isFinite(mediaDuration) || mediaDuration === 0))) return;
+    const signature = `${position.toFixed(1)}:${Number.isFinite(mediaDuration) ? mediaDuration.toFixed(1) : 0}:${media.ended}`;
+    if (signature === lastProgressSignature.current) return;
+    lastProgressSignature.current = signature;
+    lastProgressAt.current = now;
+    onProgressRef.current({
+      position,
+      duration: Number.isFinite(mediaDuration) ? mediaDuration : 0,
+      completed: media.ended,
+    });
+  }
 
   async function startPlayback() {
     try {
@@ -163,7 +226,13 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
       setNotice('Fullscreen could not open. You can keep watching here.');
     }
   }
-  function close() { video.current.pause(); onClose(); }
+  function close() { reportProgress(true); video.current.pause(); onClose(); }
+  function toggleSubtitleSettings() {
+    const next = !subtitleSettings;
+    subtitlePanelOpen.current = next;
+    setSubtitleSettings(next);
+    reveal();
+  }
   function onKeyDown(event) {
     reveal();
     if (event.key === 'Escape') {
@@ -194,12 +263,13 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
   }
 
   return (
-    <dialog ref={dialog} tabIndex={-1} className={`vp-dialog ${controlsVisible || paused || status === 'error' ? '' : 'vp-idle'}`}
+    <dialog ref={dialog} tabIndex={-1} className={`vp-dialog ${controlsVisible || paused || subtitleSettings || status === 'error' ? '' : 'vp-idle'}`}
       aria-labelledby={titleId} onKeyDown={onKeyDown} onPointerMove={reveal} onPointerDown={reveal}
       onFocus={reveal} onBlur={reveal}
       onCancel={(event) => {
         event.preventDefault();
-        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        if (subtitleSettings) toggleSubtitleSettings();
+        else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
         else if (Date.now() - fullscreenExitedAt.current > 350) close();
       }}>
       <div ref={surface} className="vp-surface">
@@ -207,18 +277,18 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
         poster={isDemo ? undefined : (episode.thumbnail || movie.poster)}
         aria-label={isDemo ? episode.demo.title : `${movie.title}: ${episode.title}`}
         onClick={togglePlayback}
-        onLoadedMetadata={() => { setDuration(video.current.duration); setStatus('ready'); }}
+        onLoadedMetadata={() => { setDuration(video.current.duration); setTracksReady((value) => value + 1); setStatus('ready'); }}
         onDurationChange={() => setDuration(video.current.duration)}
         onCanPlay={() => setStatus((current) => current === 'error' || current === 'ended' ? current : 'ready')}
-        onTimeUpdate={() => setTime(video.current.currentTime)}
+        onTimeUpdate={() => { setTime(video.current.currentTime); reportProgress(); }}
         onPlay={() => { setPaused(false); setStatus('ready'); setNotice(''); reveal(); }}
         onPlaying={() => { setStatus('ready'); reveal(); }}
-        onPause={() => { setPaused(true); setControlsVisible(true); }}
+        onPause={() => { setPaused(true); setControlsVisible(true); reportProgress(true); }}
         onWaiting={() => setStatus('buffering')}
         onSeeking={() => setStatus('buffering')}
         onSeeked={() => setStatus('ready')}
-        onEnded={() => { setStatus('ended'); setPaused(true); setControlsVisible(true); }}
-        onVolumeChange={() => { setVolume(video.current.volume); setMuted(video.current.muted); }}
+        onEnded={() => { setStatus('ended'); setPaused(true); setControlsVisible(true); reportProgress(true); }}
+        onVolumeChange={() => { setVolume(video.current.volume); setMuted(video.current.muted); reveal(); }}
         onError={() => {
           const code = video.current?.error?.code;
           console.error('[player] Media element error', {
@@ -229,9 +299,10 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
           setError(describeMediaError(code));
           setControlsVisible(true);
         }}
-        onLoadedData={() => { if (video.current.paused) startPlayback(); }}>
-        {episode.subtitles?.map((track) => <track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label} default={track.default} />)}
+        onLoadedData={() => { if (video.current.paused && !awaitingResume) startPlayback(); }}>
+        {episode.subtitles?.map((track) => <track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label} onLoad={() => setTracksReady((value) => value + 1)} />)}
       </video>
+      {subtitleText && <div className="vp-subtitle-overlay" style={{ '--subtitle-size': `${16 * subtitlePreferences.size / 100}px`, '--subtitle-bottom': `${subtitlePreferences.position}%` }}>{subtitleText}</div>}
       <div className="vp-top vp-chrome">
         <button className="vp-back" onClick={close} aria-label="Back to show details"><PlayerIcon name="back" /></button>
         <div className="vp-heading"><p>{isDemo ? 'DEMO PREVIEW · NOT THE ACTUAL EPISODE' : 'NOW PLAYING'}</p>
@@ -242,9 +313,11 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
       </div>
       {(status === 'loading' || status === 'buffering') && <div className="vp-feedback" role="status"><span className="vp-spinner" /><p>{status === 'loading' ? 'Loading video…' : 'Buffering…'}</p></div>}
       {status === 'error' && <div className="vp-feedback vp-error" role="alert"><h3>Something went wrong</h3><p>{error}</p><button onClick={retry}>Try again</button></div>}
-      {paused && !['loading', 'buffering', 'error'].includes(status) && <button className="vp-center-play" onClick={() => { if (status === 'ended') seek(0); startPlayback(); }} aria-label={status === 'ended' ? 'Replay video' : 'Play video'}><span aria-hidden="true">{status === 'ended' ? '↻' : '▶︎'}</span></button>}
+      {awaitingResume && status !== 'loading' && status !== 'error' && <div className="vp-resume" role="group" aria-label="Resume saved progress"><p>You watched up to <strong>{formatTime(resumePosition)}</strong>.</p><div><button onClick={() => { setAwaitingResume(false); seek(resumePosition); startPlayback(); }}>Skip watched part</button><button onClick={() => { setAwaitingResume(false); seek(0); startPlayback(); }}>Start from beginning</button></div></div>}
+      {paused && !awaitingResume && !['loading', 'buffering', 'error'].includes(status) && <button className="vp-center-play" onClick={() => { if (status === 'ended') seek(0); startPlayback(); }} aria-label={status === 'ended' ? 'Replay video' : 'Play video'}><span aria-hidden="true">{status === 'ended' ? '↻' : '▶︎'}</span></button>}
       <div className="vp-bottom vp-chrome">
         {notice && <p className="vp-notice" role="status">{notice}</p>}
+        {subtitleSettings && <section className="vp-subtitle-panel" aria-label="Subtitle appearance"><div><strong>Subtitle appearance</strong><button onClick={toggleSubtitleSettings} aria-label="Close subtitle settings">×</button></div><label>Size <output>{subtitlePreferences.size}%</output><input type="range" min="75" max="200" step="25" value={subtitlePreferences.size} onChange={(event) => { setSubtitlePreferences((current) => ({ ...current, size: Number(event.target.value) })); reveal(); }} /></label><label>Position from bottom <output>{subtitlePreferences.position}%</output><input type="range" min="8" max="42" step="2" value={subtitlePreferences.position} onChange={(event) => { setSubtitlePreferences((current) => ({ ...current, position: Number(event.target.value) })); reveal(); }} /></label></section>}
         <div className="vp-controls">
           <label className="vp-seek"><span className="vp-sr-only">Seek video</span><input type="range" min="0" max={Number.isFinite(duration) ? duration : 0} step="0.1" value={Math.min(time, Number.isFinite(duration) ? duration : 0)} disabled={!Number.isFinite(duration) || duration <= 0 || status === 'error'} onChange={(event) => seek(Number(event.target.value))} aria-valuetext={`${formatTime(time)} of ${formatTime(duration)}`} style={{ '--progress': `${duration ? time / duration * 100 : 0}%` }} /></label>
           <div className="vp-toolbar">
@@ -255,7 +328,7 @@ export default function VideoPlayer({ episode, movie, onClose, onRetry }) {
             <label className="vp-volume"><span className="vp-sr-only">Volume</span><input type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={(event) => { video.current.volume = Number(event.target.value); video.current.muted = false; }} /></label>
             <span className="vp-time">{formatTime(time)} <span>/ {formatTime(duration)}</span></span>
             <span className="vp-shortcuts">Space: pause · ← →: 10s</span>
-            {!!episode.subtitles?.length && <label className="vp-captions"><span className="vp-sr-only">Subtitles</span><select defaultValue={String(episode.subtitles.findIndex((track) => track.default)) === '-1' ? 'off' : String(episode.subtitles.findIndex((track) => track.default))} aria-label="Subtitles" onChange={(event) => { Array.from(video.current.textTracks).forEach((track, index) => { track.mode = String(index) === event.target.value ? 'showing' : 'disabled'; }); }}><option value="off">CC Off</option>{episode.subtitles.map((track, index) => <option key={track.src} value={index}>{track.label}</option>)}</select></label>}
+            {!!episode.subtitles?.length && <><label className="vp-captions"><span className="vp-sr-only">Subtitles</span><select value={subtitleIndex} aria-label="Subtitles" onChange={(event) => { setSubtitleIndex(Number(event.target.value)); reveal(); }}><option value={-1}>CC Off</option>{episode.subtitles.map((track, index) => <option key={track.src} value={index}>{track.label}</option>)}</select></label><button className="vp-subtitle-settings-button" onClick={toggleSubtitleSettings} aria-label="Subtitle size and position" aria-expanded={subtitleSettings}>Aa</button></>}
             <button className="vp-fullscreen" onClick={toggleFullscreen} aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}><PlayerIcon name={fullscreen ? 'collapse' : 'expand'} /></button>
           </div>
         </div>

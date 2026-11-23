@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+import { AuthProvider } from './components/AuthContext.jsx'
 import './index.css'
 
 // Polyfill for AbortSignal.any and AbortSignal.timeout (used in AnimeSearchResults)
@@ -24,6 +25,8 @@ if (typeof AbortSignal.timeout === 'undefined') {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>,
 )

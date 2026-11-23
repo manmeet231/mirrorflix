@@ -1,6 +1,8 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import VideoPlayer from './VideoPlayer';
 import EmbedPlayer from './EmbedPlayer';
+import DiscussionForum from './DiscussionForum';
+import { useAuth } from './AuthContext';
 import {
   fetchAnimeEpisodes,
   fetchAniwaveEpisodes,
@@ -26,6 +28,7 @@ export default function MovieModal({
   eyebrowText = 'ALTERBUCKET · SERIES',
   showVideoPlayer = true 
 }) {
+  const { getEpisodeProgress, saveProgress } = useAuth();
   const dialog = useRef(null);
   const streamController = useRef(null);
   const headingId = useId();
@@ -43,6 +46,7 @@ export default function MovieModal({
   const [titleIds, setTitleIds] = useState(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState('');
+  const [forumEpisode, setForumEpisode] = useState(null);
   const isAnime = movie?.mediaType === 'anime' || !movie?.mediaType;
   const mediaType = isAnime ? 'anime' : showType === 'movie' ? 'movie' : 'series';
   const expectedEpisodeCount = movie?.episodeCount || Number.parseInt(movie?.seasons, 10) || null;
@@ -62,6 +66,7 @@ export default function MovieModal({
     setMetadataError('');
     setSaved(false);
     setLiked(false);
+    setForumEpisode(null);
     streamController.current?.abort();
 
     const previous = document.activeElement;
@@ -140,6 +145,8 @@ export default function MovieModal({
   async function play(episode) {
     setError('');
     if (!episode) { setError('No episodes are available yet.'); return; }
+    const episodeKey = String(episode.number || episode.episodeNumber || episode.id || '1');
+    const playback = { ...episode, episodeKey, initialProgress: getEpisodeProgress(movie.id, episodeKey) };
     if (onPlay) { onPlay(episode, movie); return; }
     if (!showVideoPlayer) { setError('Playback is disabled for this view.'); return; }
 
@@ -186,7 +193,7 @@ export default function MovieModal({
         }
 
         setPlaying({
-          ...episode,
+          ...playback,
           id: episode.id || `${source.id}-${episodeNumber}`,
           title: episode.title || `Episode ${episodeNumber}`,
           embedUrl,
@@ -204,7 +211,7 @@ export default function MovieModal({
       return;
     }
 
-    if (episode.videoUrl) { setPlaying(episode); return; }
+    if (episode.videoUrl) { setPlaying(playback); return; }
 
     if (isAnime && episode.id) {
       streamController.current?.abort();
@@ -221,7 +228,7 @@ export default function MovieModal({
           : await fetchEpisodeStream(episode.id, { signal: controller.signal });
         if (controller.signal.aborted) return;
         setPlaying({
-          ...episode,
+          ...playback,
           title: episode.title || `Episode ${episode.number}`,
           videoUrl: source.videoUrl,
           subtitles: source.subtitles || [],
@@ -238,7 +245,7 @@ export default function MovieModal({
     }
 
     if (movie.demoVideo) {
-      setPlaying({ ...episode, videoUrl: movie.demoVideo.url, demo: movie.demoVideo, subtitles: [] });
+      setPlaying({ ...playback, videoUrl: movie.demoVideo.url, demo: movie.demoVideo, subtitles: [] });
     } else {
       setError('Video is not available yet.');
     }
@@ -309,6 +316,8 @@ export default function MovieModal({
                 key={`${playing.id ?? playing.title}-${playing.videoUrl}`}
                 episode={playing}
                 movie={movie}
+                initialProgress={playing.initialProgress}
+                onProgress={({ position, duration, completed }) => saveProgress({ movie, episodeId: playing.episodeKey, position, duration, completed })}
                 onClose={() => setPlaying(null)}
                 onRetry={() => {
                   setPlaying(null);
@@ -357,7 +366,7 @@ export default function MovieModal({
                   onChange={(event) => changeSource(event.target.value)}
                   aria-label="Playback source"
                 >
-                  {PLAYER_SOURCES.map((source) => (
+                  {(isAnime ? PLAYER_SOURCES.filter((source) => source.id === 'aniwave' || source.id === 'hianime') : PLAYER_SOURCES).map((source) => (
                     <option
                       key={source.id}
                       value={source.id}
@@ -387,18 +396,26 @@ export default function MovieModal({
                   {availableEpisodes.map((episode, index) => {
                     const number = episode.number || index + 1;
                     const isLoading = streamLoadingId === episode.id;
+                    const watch = getEpisodeProgress(movie.id, number);
+                    const percent = watch?.duration > 0 ? Math.min(100, watch.position / watch.duration * 100) : 0;
                     return (
-                      <button
-                        type="button"
-                        key={episode.id || number}
-                        className={`show-episode-button ${isLoading ? 'is-loading' : ''}`}
-                        onClick={() => play(episode)}
-                        disabled={streamLoadingId !== null}
-                        aria-label={`Play episode ${number}`}
-                        aria-busy={isLoading}
-                      >
-                        {number}
-                      </button>
+                      <div className="show-episode-item" key={episode.id || number}>
+                        <button
+                          type="button"
+                          className={`show-episode-button ${isLoading ? 'is-loading' : ''} ${watch?.completed ? 'is-watched' : ''}`}
+                          onClick={() => play(episode)}
+                          disabled={streamLoadingId !== null}
+                          aria-label={`Play episode ${number}${watch?.completed ? ', watched' : ''}`}
+                          aria-busy={isLoading}
+                        >
+                          <span>{number}</span>
+                          {watch?.completed && <span className="show-watched-check" aria-label="Watched">✓</span>}
+                          {!watch?.completed && percent > 0 && <span className="show-episode-progress" style={{ '--watched': `${percent}%` }} aria-hidden="true" />}
+                        </button>
+                        <button type="button" className="show-episode-discussion" onClick={() => setForumEpisode(number)} aria-pressed={String(forumEpisode) === String(number)}>
+                          {String(forumEpisode) === String(number) ? 'Discussing' : 'Discussion'}
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -406,6 +423,14 @@ export default function MovieModal({
               {streamLoadingId !== null && <p role="status">Resolving episode stream…</p>}
             </section>
           )}
+          <section className="show-community" aria-labelledby={`${headingId}-community`}>
+            <div className="show-community-header">
+              <div><p className="show-community-eyebrow">COMMUNITY</p><h2 id={`${headingId}-community`}>{forumEpisode == null ? 'Show discussion' : `Episode ${forumEpisode} discussion`}</h2></div>
+              {forumEpisode != null && <button type="button" className="show-general-discussion" onClick={() => setForumEpisode(null)}>Show discussion</button>}
+            </div>
+            <p className="show-thread-note">{forumEpisode == null ? 'General conversation about this anime.' : `This thread is only for episode ${forumEpisode}. Please mark major spoilers in your message.`}</p>
+            <DiscussionForum key={`${movie.id}-${forumEpisode ?? 'show'}`} movieId={String(movie.id)} episodeId={forumEpisode == null ? null : String(forumEpisode)} />
+          </section>
         </div>
       </article>
     </dialog>

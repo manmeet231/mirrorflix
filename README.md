@@ -19,6 +19,8 @@ npm run dev
 
 The frontend expects an external genre database at the configured `VITE_API_BASE_URL`. The database implementation is not included here.
 
+`npm run dev` also starts the account and playback API. Accounts, hashed passwords, sessions, watch progress, and forum posts are stored in `data/accounts.json` (ignored by Git). Set `STREAMBERT_DATA_FILE` to use a different persistent file. This JSON store is suitable for a single Node process; production deployments need a persistent disk and should use a managed database before running multiple server instances.
+
 To run the optional sync service:
 
 ```powershell

@@ -4,7 +4,7 @@
 
 MirrorFlix is a React single-page catalog interface built with Vite. The active application displays anime from an external genre database, provides live anime/TV-series search, shows title details in a modal, and supports native browser playback when a record contains an episode `videoUrl`.
 
-There is no client-side router, authentication, account store, server-side rendering, or frontend DOM test runner. Navigation and search are state-driven within one page.
+There is no client-side router or server-side rendering. Navigation and search are state-driven within one page. The Node service provides account registration/login, persistent sessions, watch progress, and show/episode forums; there is no frontend DOM test runner in the default test command.
 
 ## Run and verify
 
@@ -37,8 +37,9 @@ Vite embeds `VITE_*` values in public browser JavaScript; never put secrets in t
 5. The home view renders a static hero carousel and the completed genre rows. Loading rows are derived directly from configuration rather than duplicated in component state.
 6. Selecting a card normalizes `description` to `synopsis` and genre arrays to display text, then opens `MovieModal`.
 7. A non-empty search query replaces the home view with search results. Live requests begin at two characters after a 450 ms debounce and have an eight-second timeout. Anime and TV-series searches run independently.
-8. Opening an anime modal resolves Aniwave episodes by title/synonyms and uses Aniwave for native playback by default. Selecting HiAnime or an embed provider aborts stale requests and reloads the appropriate episode catalog.
-9. TMDB title metadata is requested only for embed providers that need external identifiers. Native Aniwave and HiAnime playback does not depend on TMDB availability.
+8. Opening an anime modal resolves Aniwave episodes by title/synonyms and uses Aniwave for native playback by default. Selecting HiAnime aborts stale requests and reloads its episode catalog. These are the only two anime playback sources exposed by the modal.
+9. Logged-in users restore watch progress through the same-origin Node API. Progress is saved by show ID and episode number, so it is shared between Aniwave and HiAnime. The player offers to resume unfinished episodes, and watched episodes receive a check mark.
+10. Recommendations rank unwatched catalog titles by genres in the logged-in user's watch history. Show-level forums and each numbered episode's forum are separate server-side threads.
 
 The current app does **not** call the FastAPI port-`8002` service. That service is for synchronization and proxy administration; see [backend.md](backend.md).
 

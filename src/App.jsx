@@ -7,6 +7,8 @@ import MovieModal from './components/MovieModal';
 import { fetchGenreRows } from './components/dbApiService';
 import { GENRE_ROW_LIMIT, TARGET_GENRES } from './catalogConfig';
 import { featuredShows } from './featuredShows';
+import { recommendFromWatchHistory } from './recommendations';
+import { useAuth } from './components/AuthContext';
 import './App.css';
 
 function normalizeMovie(movie) {
@@ -18,6 +20,7 @@ function normalizeMovie(movie) {
 }
 
 export default function App() {
+  const { progress } = useAuth();
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [genreRows, setGenreRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +29,7 @@ export default function App() {
   const query = searchQuery.trim();
   const isSearching = query.length > 0;
   const catalog = useMemo(() => genreRows.flatMap((row) => row.animes), [genreRows]);
+  const recommendations = useMemo(() => recommendFromWatchHistory(catalog, progress), [catalog, progress]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -72,6 +76,7 @@ export default function App() {
             <CategorizedAnimeSection
               title="Browse Anime"
               genreRows={genreRows}
+              recommendedMovies={recommendations}
               onSelectMovie={(movie) => setSelectedMovie(normalizeMovie(movie))}
               loading={loading}
               error={error}

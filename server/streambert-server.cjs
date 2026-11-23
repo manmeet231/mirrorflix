@@ -10,6 +10,8 @@ try {
 const scraper = require("../src/streambert-anime-test.cjs");
 const aniwave = require("../src/aniwave-scraper.cjs");
 const { createTitleMetadata } = require("./titleMetadata.cjs");
+const { createAccountStore } = require("./accountStore.cjs");
+const { createAccountApi } = require("./accountApi.cjs");
 
 const {
   extractSeason,
@@ -48,7 +50,9 @@ function createStreambertServer(
   scraperClient = scraper,
   titleMetadata = createTitleMetadata(),
   aniwaveClient = aniwave,
+  accountStore = createAccountStore({ filePath: process.env.STREAMBERT_DATA_FILE || undefined }),
 ) {
+  const handleAccountRequest = createAccountApi(accountStore, sendJson);
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://127.0.0.1");
 
@@ -63,6 +67,8 @@ function createStreambertServer(
         res.end(body);
         return;
       }
+
+      if (await handleAccountRequest(req, res, url)) return;
 
       if (req.method !== "GET" || !url.pathname.startsWith(`${API_PREFIX}/`)) {
         sendJson(res, 404, { error: "Not found" });

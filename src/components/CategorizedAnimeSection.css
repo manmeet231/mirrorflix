@@ -52,11 +52,12 @@
   padding: 8px 0;
 }
 
-/* Allow expanded cards to paint above neighboring rows. */
+/* Keep horizontal scrolling enabled; vertical padding leaves room for expanded cards. */
 .category-section .movie-row-posters {
   position: relative;
   z-index: 1;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .category-section .scroll-btn {

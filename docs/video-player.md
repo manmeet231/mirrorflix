@@ -47,8 +47,7 @@ caller when provided; `showVideoPlayer={false}` disables built-in playback.
 
 ## Controls
 
-Play/pause, seek, ±10 seconds, mute/volume, captions when provided, fullscreen,
-retry, replay and back. Space toggles playback, left/right seek ten seconds,
+Play/pause, seek, ±10 seconds, mute/volume, captions when provided, subtitle size and vertical position, fullscreen, retry, replay and back. For logged-in users, unfinished episodes offer **Skip watched part** or **Start from beginning**; progress saves periodically and on pause/close. Subtitle appearance preferences are retained in local browser storage. Space toggles playback, left/right seek ten seconds,
 up/down adjust volume, M toggles mute, and F toggles browser fullscreen. Shortcuts
 only apply inside the player and do not override form/button interactions.
 Escape exits browser fullscreen first; otherwise closes the player. Browsers may

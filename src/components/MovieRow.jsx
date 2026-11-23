@@ -29,13 +29,15 @@ const MovieRow = ({ movies, onSelectMovie, title, variant }) => {
     };
   }, [movies.length]);
 
-  const scrollLeft = () => {
-    rowRef.current.scrollBy({ left: -300, behavior: isSearch ? 'auto' : 'smooth' });
+  const scrollRow = (direction) => {
+    const row = rowRef.current;
+    if (!row) return;
+    const distance = Math.max(row.clientWidth * 0.85, 300);
+    row.scrollBy({ left: direction * distance, behavior: isSearch ? 'auto' : 'smooth' });
   };
 
-  const scrollRight = () => {
-    rowRef.current.scrollBy({ left: 300, behavior: isSearch ? 'auto' : 'smooth' });
-  };
+  const scrollLeft = () => scrollRow(-1);
+  const scrollRight = () => scrollRow(1);
 
   return (
     <div className={isSearch ? 'movie-row movie-row--search' : 'movie-row'}>

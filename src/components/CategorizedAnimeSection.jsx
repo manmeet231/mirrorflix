@@ -57,6 +57,7 @@ const MovieRowSkeleton = () => (
 export default function CategorizedAnimeSection({
   title = 'Browse Anime',
   genreRows = [],
+  recommendedMovies = [],
   onSelectMovie,
   loading = false,
   error = null,
@@ -90,6 +91,12 @@ export default function CategorizedAnimeSection({
   return (
     <div className="content-section">
       <div className="section anime-section" aria-busy={loading}>
+        {recommendedMovies.length > 0 && (
+          <section className="category-section recommendation-section" aria-label="Recommended for you">
+            <h2 className="category-title">Recommended for you</h2>
+            <MovieRow movies={recommendedMovies} title="Recommended for you" onSelectMovie={onSelectMovie} />
+          </section>
+        )}
         <h2 className="section-title">{title}</h2>
         {content}
       </div>

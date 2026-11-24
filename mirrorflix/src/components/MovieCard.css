@@ -1,0 +1,369 @@
+
+.movie-card {
+  flex: 0 0 180px;
+  width: 180px;
+  height: 101px;
+  margin-left: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Main expandable card */
+.movie-card-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  background: #181818;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  transform-origin: top left;
+
+  transition:
+    width 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Expand on hover or keyboard focus */
+.movie-card:not([data-preview-collapsed]):hover,
+.movie-card:not([data-preview-collapsed]):focus-within {
+  z-index: 1000;
+}
+
+.movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+.movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
+  width: min(300px, calc(100vw - 40px));
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+}
+
+/* Image section */
+.movie-card-visual {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #111;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.movie-card[data-preview-collapsed] .movie-card-visual:focus-visible {
+  outline: 2px solid #e50914;
+  outline-offset: -2px;
+}
+
+.movie-poster {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.movie-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  color: white;
+  padding: 8px 12px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Footer */
+.movie-footer {
+  background: #181818;
+  color: white;
+  padding: 0 16px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+
+  transition:
+    opacity 0.25s ease,
+    max-height 0.3s ease,
+    padding 0.3s ease;
+}
+
+.movie-card:not([data-preview-collapsed]):hover .movie-footer,
+.movie-card:not([data-preview-collapsed]):focus-within .movie-footer {
+  max-height: 180px;
+  opacity: 1;
+  padding: 18px 16px 20px;
+}
+
+/* Action buttons row */
+.movie-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+/* Common button styling */
+.action-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #777;
+  background: transparent;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 25px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.action-button:hover {
+  background: #444;
+  border-color: white;
+}
+
+/* Play button */
+.play-button {
+  background: white;
+  color: black;
+  border: 1px solid white;
+  font-size: 19px;
+}
+
+.play-button:hover {
+  background: #ddd;
+  border-color: #ddd;
+}
+
+/* Active like/add state */
+.action-button.active {
+  border-color: white;
+  background: #333;
+  color: #46d369;
+}
+
+.more-button {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-button svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  transition: transform 0.2s ease;
+}
+
+.more-button:hover svg {
+  transform: translateY(2px);
+}
+
+/* Metadata section */
+.movie-metadata {
+  width: 100%;
+}
+
+/* Movie title */
+.movie-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 9px;
+  flex: 0 0 auto;
+}
+
+/* Match, rating, seasons, quality */
+.movie-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.match-percentage {
+  color: #46d369;
+  font-weight: 700;
+}
+
+.age-rating {
+  border: 1px solid #aaa;
+  padding: 2px 6px;
+  font-size: 13px;
+  color: white;
+}
+
+.season-info {
+  color: white;
+  font-size: 14px;
+}
+
+.quality-badge {
+  border: 1px solid #888;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  color: white;
+}
+
+/* Genres row */
+.movie-genres {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #ddd;
+  font-size: 14px;
+}
+
+.genre-item {
+  flex: 0 0 auto;
+}
+
+.genre-item:not(:last-child)::after {
+  content: "•";
+  margin-left: 9px;
+  color: #777;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .movie-card {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 79px;
+  }
+
+  .movie-card-expanded {
+    width: 150px;
+  }
+
+  .movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+  .movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
+    width: min(480px, calc(100vw - 30px));
+  }
+
+  .movie-meta-top,
+  .movie-genres {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .movie-card {
+    flex: 0 0 90px;
+    width: 90px;
+    height: 51px;
+  }
+
+  .movie-card-expanded {
+    width: 100px;
+  }
+
+  .movie-card:not([data-preview-collapsed]):hover .movie-card-expanded,
+  .movie-card:not([data-preview-collapsed]):focus-within .movie-card-expanded {
+    width: min(90vw, 380px);
+  }
+
+  .movie-actions {
+    gap: 6px;
+  }
+
+  .action-button {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* Search variant styles */
+.movie-card.movie-card--search {
+  flex: 0 0 var(--search-card-width);
+  width: var(--search-card-width);
+  height: auto;
+  margin: 0;
+}
+
+.movie-card-search-button {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: calc(var(--search-card-width) * 0.06 + 2px);
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font: inherit;
+}
+
+.movie-card-search-button:focus-visible {
+  outline: 2px solid #e50914;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.movie-card-search-thumbnail {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #241923;
+  transition: transform 180ms ease;
+}
+
+.movie-card--search .movie-poster--cover {
+  object-position: center 26%;
+}
+
+.movie-card-search-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 10px;
+  overflow: hidden;
+  text-align: center;
+  color: #f6d6dd;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.movie-card-search-title {
+  position: relative;
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.movie-card-search-button small {
+  position: relative;
+  margin-top: -6px;
+  color: #c9bdc6;
+  font-size: 0.75rem;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .movie-card--search:not([data-preview-collapsed]):hover .movie-card-search-thumbnail {
+    transform: scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-card-search-thumbnail {
+    transition: none;
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "mirrorflix",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server/dev.cjs",
+    "dev:frontend": "vite",
+    "streambert": "node server/streambert-server.cjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/catalogServices.test.js tests/streambertServer.test.cjs tests/devPorts.test.cjs tests/showResolver.test.cjs tests/titleMetadata.test.cjs tests/playerSources.test.js tests/aniwaveScraper.test.cjs tests/playbackErrors.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manmeet231/mirrorflix.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/manmeet231/mirrorflix/issues"
+  },
+  "homepage": "https://github.com/manmeet231/mirrorflix#readme",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "node-fetch": "^3.3.2",
+    "electron": "^28.1.0",
+    "hls.js": "^1.4.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8"
+  }
+}

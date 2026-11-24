@@ -9,3 +9,10 @@ __pycache__/
 backend/logs/
 data/accounts.json
 data/*.tmp
+
+# Python virtualenv + runtime logs (not currently ignored)
+venv/
+.venv/
+logs/
+*.log
+.env.local

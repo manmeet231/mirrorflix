@@ -1,5 +1,8 @@
 const configuredBaseUrl = import.meta.env?.VITE_API_BASE_URL;
-const API_BASE_URL = (configuredBaseUrl || 'http://103.235.105.231:8001').replace(/\/$/, '');
+// Same-origin by default: Vite proxies /api/genres in dev, nginx routes it in
+// production. Never fall back to a hard-coded VPS IP — the database API only
+// listens on the VPS loopback, so that fallback could never connect.
+const API_BASE_URL = (configuredBaseUrl || '').replace(/\/$/, '');
 
 async function requestDatabase(path, { signal, notFoundValue, ...options } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {

@@ -1,0 +1,62 @@
+﻿name: Deploy Alterbucket
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          # Pin the VPS host public key verified out of band.
+          # Nondefault SSH ports require the [host]:port known_hosts format.
+          printf '[%s]:%s ssh-ed25519 %s\n' "$VPS_HOST" "$VPS_PORT" \
+            'AAAAC3NzaC1lZDI1NTE5AAAAIOZuYTagKudGoqU1qEAiHEuoGHcJjrCrggMN1SeMMdgR' \
+            > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+          ssh-keygen -lf ~/.ssh/known_hosts | grep -Fq 'SHA256:tFtAaMnpx+jaagUU/h6ZukCSPyTSTkS2UP3knbXgkqw' || {
+            echo "Pinned SSH host fingerprint verification failed"
+            exit 1
+          }
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=yes \
+            -p "$VPS_PORT" \
+            "$VPS_USER@$VPS_HOST" <<'EOF'
+              set -e
+
+              cd /var/www/alterbucket/frontend
+
+              echo "Pulling latest code..."
+              git pull --ff-only origin main
+
+              echo "Installing dependencies..."
+              npm ci
+
+              echo "Building production frontend..."
+              npm run build
+
+              echo "Deployment completed successfully!"
+          EOF

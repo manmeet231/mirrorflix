@@ -1,0 +1,136 @@
+.carousel-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 20;
+}
+
+.carousel-nav-btn {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.carousel-nav-btn:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.carousel-nav-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.carousel-indicators {
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.indicator.active {
+  background-color: #fff;
+  width: 30px;
+  border-radius: 5px;
+}
+
+/* Show controls on hover for desktop */
+@media (hover: hover) and (pointer: fine) {
+  .carousel-nav-btn {
+    opacity: 0;
+  }
+
+  .hero-container:hover .carousel-nav-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hero-container:hover .carousel-nav-btn.prev-btn {
+    transform: translateX(-10px);
+  }
+
+  .hero-container:hover .carousel-nav-btn.next-btn {
+    transform: translateX(10px);
+  }
+}
+
+/* Always show controls on mobile */
+@media (max-width: 768px) {
+  .carousel-nav-btn {
+    opacity: 1;
+    transform: none;
+    width: 40px;
+    height: 40px;
+  }
+
+  .carousel-nav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .carousel-controls {
+    bottom: 20px;
+    gap: 15px;
+  }
+
+  .indicator {
+    width: 8px;
+    height: 8px;
+  }
+
+  .indicator.active {
+    width: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-controls {
+    bottom: 10px;
+    gap: 10px;
+  }
+
+  .carousel-nav-btn {
+    width: 35px;
+    height: 35px;
+  }
+
+  .carousel-nav-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .indicator {
+    width: 6px;
+    height: 6px;
+  }
+
+  .indicator.active {
+    width: 18px;
+  }
+}

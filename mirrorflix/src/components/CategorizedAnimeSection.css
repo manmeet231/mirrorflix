@@ -1,0 +1,187 @@
+/* ============================================================
+   Categorized Anime Section Styles — PATCHED
+   Core fix: the whole row elevates on hover, and NOTHING
+   between a card and the section is allowed to clip it.
+   ============================================================ */
+
+.category-tabs {
+  display: none; /* Hide category tabs since we're showing all rows */
+}
+
+/* All categories container */
+.all-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+/* Individual category section */
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Do NOT add isolation / contain / filter / opacity < 1 here. */
+}
+
+/* Elevate the whole row — every descendant paints above sibling rows */
+.category-section:hover,
+.category-section:has(.movie-card:hover),
+.category-section:has(.movie-card.expanded) {
+  z-index: 100;
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Category title styling */
+.category-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  padding-left: 10px;
+}
+
+.category-section .movie-row {
+  padding: 8px 0;
+}
+
+/* Allow expanded cards to paint above neighboring rows. */
+.category-section .movie-row-posters {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.category-section .scroll-btn {
+  position: absolute;
+  z-index: 101;
+}
+
+/* ---------- Tabs ---------- */
+
+.category-tabs-primary {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.category-tab {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.category-tab:hover {
+  background: #333;
+  border-color: #666;
+}
+
+.category-tab.active {
+  background: #e50914;
+  border-color: #e50914;
+  color: #fff;
+  font-weight: bold;
+}
+
+.category-subtabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.subtab {
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.subtab:hover {
+  background: #333;
+  border-color: #666;
+  color: #fff;
+}
+
+.subtab.active {
+  background: #f40612;
+  border-color: #f40612;
+  color: #fff;
+  font-weight: bold;
+}
+
+.category-content {
+  margin-top: 1rem;
+}
+
+/* ---------- States ---------- */
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #fff;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #333;
+  border-top: 3px solid #e50914;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+  border: 1px solid #ff4444;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #aaa;
+  text-align: center;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .category-tabs-primary { gap: 0.25rem; }
+  .category-tab { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+  .subtab { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+}

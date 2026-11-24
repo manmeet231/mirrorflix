@@ -1,5 +1,5 @@
 const configuredBaseUrl = import.meta.env?.VITE_API_BASE_URL;
-const API_BASE_URL = (configuredBaseUrl || 'http://103.235.105.231:8001').replace(/\/$/, '');
+const API_BASE_URL = (configuredBaseUrl || '').replace(/\/$/, '');
 
 async function requestDatabase(path, { signal, notFoundValue, ...options } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {

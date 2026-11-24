@@ -157,6 +157,12 @@ Errors: `422` for invalid parameters/statuses, `429` when this process already h
 
 Statuses map to Currently Airing, Upcoming, Completed, Hiatus, or Cancelled. `seasons` is actually an episode-count label, `duration` includes `min`, and sync initializes `streamUrl` to `null` and `episodes` to `[]`.
 
+## Production networking
+
+The database API (Mirrorflix Database API) listens on `127.0.0.1:8001` (localhost only) and is not exposed directly on the public IP. External traffic reaches it through Nginx; for example `https://alterbucket.in/api/genres` is forwarded to `127.0.0.1:8001/api/genres`. The browser home page calls this same-origin HTTPS path directly — it does not go through the FastAPI service on port `8002`.
+
+The FastAPI admin/sync service itself binds to `127.0.0.1` (default port `8002`) and proxies/syncs against the database API through `API_BASE_URL` (default `http://127.0.0.1:8001`). Keep it loopback-only or protect it with an authenticated reverse proxy before any public exposure.
+
 ## Security and operations
 
 There is no authentication or authorization. Anyone who can reach the service can trigger expensive AniList/database writes. Bind to loopback or protect it with an authenticated reverse proxy, restrict `CORS_ORIGINS`, use HTTPS in production, and add rate limiting before exposing it publicly. CORS is not access control.

@@ -23,15 +23,25 @@ npm run preview              # serve the production build locally
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | `http://103.235.105.231:8001` | Origin of the external genre database, without a trailing `/api`. |
+| `VITE_API_BASE_URL` | `''` (same-origin relative) | Same-origin relative path. In production the browser requests `https://alterbucket.in/api/genres`, which Nginx forwards to the database API on `127.0.0.1:8001`. Leave unset to use the same origin as the page. |
 | `VITE_STREAMBERT_API_URL` | `/api/streambert` | Same-origin Streambert API path forwarded by Vite or a production reverse proxy. |
 
-Vite embeds `VITE_*` values in public browser JavaScript; never put secrets in them. An HTTPS frontend cannot call an HTTP API from secure browsers because of mixed-content blocking. The database must also allow the frontend origin through CORS. Restart Vite after changing `.env`.
+Vite embeds `VITE_*` values in public browser JavaScript; never put secrets in them. The default is a same-origin relative path (`''`), so production requests go to `https://alterbucket.in/api/genres` and avoid mixed-content blocking. If you override `VITE_API_BASE_URL`, use the public HTTPS origin, never `http://<public-ip>:8001` directly; the database API listens on localhost only and is reached through Nginx. The database must also allow the frontend origin through CORS. Restart Vite after changing `.env`.
+
+### Local development
+
+Local dev runs Vite over HTTP (`http://127.0.0.1:5173`), so there is no mixed-content restriction. To reach a database API from local dev, create `.env` and set `VITE_API_BASE_URL` to the remote database origin, for example:
+
+```
+VITE_API_BASE_URL=http://103.235.105.231:8001
+```
+
+With `VITE_API_BASE_URL` unset, requests default to the same-origin relative path `/api/genres`. No database API runs on local port 8001 by default, so leaving it unset in local dev will fail until Nginx (production) or a local database API is available. The `/api/streambert` path is still proxied by Vite to the local Streambert service as usual.
 
 ## Request and rendering flow
 
 1. `src/main.jsx` installs `AbortSignal.any`/`AbortSignal.timeout` fallbacks and mounts `App` inside React Strict Mode.
-2. `App.jsx` requests `GET {VITE_API_BASE_URL}/api/genres`. The effect aborts obsolete requests during cleanup, which also prevents Strict Mode's first development request from updating state.
+2. `App.jsx` requests `GET /api/genres` (same-origin relative; `VITE_API_BASE_URL` defaults to `''`). In production Nginx forwards this to the database API on `127.0.0.1:8001`. The effect aborts obsolete requests during cleanup, which also prevents Strict Mode's first development request from updating state.
 3. `buildGenreRows` processes genres in the priority order defined in `src/catalogConfig.js`: Action, Drama, Adventure, Comedy, Romance, Fantasy, Slice of Life, Mystery.
 4. A row is shown only when it contains 30 unique anime after higher-priority rows have claimed their IDs. IDs are normalized to strings, so numeric `1` and string `"1"` are duplicates. Incomplete rows do not reserve their IDs.
 5. The home view renders a static hero carousel and the completed genre rows. Loading rows are derived directly from configuration rather than duplicated in component state.
@@ -109,13 +119,13 @@ For non-anime episodes, a direct `videoUrl` still works; `demoVideo` remains an 
 
 Component JSX imports its colocated CSS. Category hover/stacking rules are in `CategorizedAnimeSection.css`; no runtime style injection is used. Images are imported so Vite fingerprints them correctly. `vite.config.js` defines the `@` alias for `src`, polling for development, and Node built-ins/Electron as build externals for the optional code.
 
-The GitHub workflow builds and deploys this frontend over SSH with `npm ci && npm run build`. Configure `VITE_API_BASE_URL` in the build environment and serve `dist/` with an SPA-capable host. For anime playback, production also needs `server/streambert-server.cjs` running beside a reverse proxy that forwards `/api/streambert/*` to it; the workflow does not currently provision that Node process or FastAPI.
+The GitHub workflow builds and deploys this frontend over SSH with `npm ci && npm run build`. The genre database is reached through a same-origin relative path, so `VITE_API_BASE_URL` does not need to be set in the build environment; Nginx proxies `/api/genres` to the database API on `127.0.0.1:8001`. If a `.env` exists on the VPS at `/var/www/alterbucket/frontend/.env`, ensure `VITE_API_BASE_URL` is empty (or unset) there too — an explicit `http://<public-ip>:8001` value would override the relative-path default and break on HTTPS. Serve `dist/` with an SPA-capable host. For anime playback, production also needs `server/streambert-server.cjs` running beside a reverse proxy that forwards `/api/streambert/*` to it; the workflow does not currently provision that Node process or FastAPI.
 
 `npm audit` currently reports high-severity advisories in Electron 28 and its `extract-zip` dependency. Electron is used only by the optional scraper, not by browser production code. The available fix is a major Electron upgrade and needs separate compatibility testing.
 
 ## Troubleshooting
 
-- **Empty home with an error:** check database availability, browser network response, CORS, and mixed-content policy.
+- **Empty home with an error:** check that Nginx is forwarding `/api/genres` to the database API on `127.0.0.1:8001`, then check database availability, browser network response, CORS, and mixed-content policy. The browser must request the same HTTPS origin (`https://alterbucket.in/api/genres`), not `http://<public-ip>:8001` directly.
 - **Rows missing:** this is expected when fewer than 30 unused anime remain for that genre; earlier genres have priority.
 - **Search unavailable:** inspect AniList/TVmaze status and browser CORS/network errors. One-character input intentionally shows local guidance only.
 - **Images work in dev but not production:** use imported assets, not literal `src/assets/...` URLs.

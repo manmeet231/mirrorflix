@@ -10,6 +10,15 @@ export default defineConfig(() => {
     },
   };
 
+  // In production the browser uses a same-origin relative path for the genre
+  // database (see src/components/dbApiService.js); Nginx forwards /api/genres*
+  // to the database API on 127.0.0.1:8001. Locally there is no database API on
+  // port 8001 by default, so /api/genres is NOT proxied here. Set
+  // VITE_API_BASE_URL in .env (e.g. http://103.235.105.231:8001) when you need
+  // local dev to reach a remote database API. Local dev runs over HTTP, so no
+  // mixed-content issue arises from pointing it at the VPS IP.
+  const proxy = streambertProxy;
+
   return {
     plugins: [react()],
     resolve: {
@@ -26,10 +35,10 @@ export default defineConfig(() => {
       watch: {
         usePolling: true,
       },
-      proxy: streambertProxy,
+      proxy,
     },
     preview: {
-      proxy: streambertProxy,
+      proxy,
     },
     publicDir: 'public',
     build: {
